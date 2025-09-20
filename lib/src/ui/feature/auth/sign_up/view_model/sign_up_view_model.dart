@@ -5,26 +5,40 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/utils/result.dart';
+import 'package:spotsell/src/data/entities/auth_request.dart';
+import 'package:spotsell/src/data/repositories/auth_repository.dart';
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 
 /// ViewModel for the Sign Up Screen
 /// Manages user registration form, validation, and submission
 class SignUpViewModel extends BaseViewModel {
   // Form controllers
-  final TextEditingController firstName = TextEditingController();
-  final TextEditingController lastName = TextEditingController();
-  final TextEditingController username = TextEditingController();
-  final TextEditingController dateOfBirth = TextEditingController();
-  final TextEditingController email = TextEditingController();
-  final TextEditingController password = TextEditingController();
-  final TextEditingController passwordConfirmation = TextEditingController();
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController dateOfBirthController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController passwordConfirmationController =
+      TextEditingController();
 
   // Additional fields
   bool? gender; // true = male, false = female
   File? profilePicture;
   DateTime? _selectedDateOfBirth;
+
+  String get firstName => firstNameController.text;
+  String get lastName => lastNameController.text;
+  String get username => usernameController.text;
+  String get dateOfBirth => dateOfBirthController.text;
+  String get email => emailController.text;
+  String get phone => phoneController.text;
+  String get password => passwordController.text;
+  String get passwordConfirmation => passwordConfirmationController.text;
 
   // Image picker instance
   final ImagePicker _imagePicker = ImagePicker();
@@ -32,37 +46,49 @@ class SignUpViewModel extends BaseViewModel {
   /// Get the selected date of birth
   DateTime? get selectedDateOfBirth => _selectedDateOfBirth;
 
-  /// Set the date of birth and update the text field
-  void setDateOfBirth(DateTime date) {
-    _selectedDateOfBirth = date;
-    dateOfBirth.text = DateFormat('MMM dd, yyyy').format(date);
-    safeNotifyListeners();
+  late final AuthRepository _authRepository;
+
+  @override
+  void initialize() {
+    super.initialize();
+    try {
+      _authRepository = getService<AuthRepository>();
+    } catch (e) {
+      debugPrint('Warning: AuthRepository not available in ServiceLocator: $e');
+      setError('Authentication service unavailable. Please restart the app.');
+    }
   }
 
   @override
   void dispose() {
-    firstName.dispose();
-    lastName.dispose();
-    username.dispose();
-    dateOfBirth.dispose();
-    email.dispose();
-    password.dispose();
-    passwordConfirmation.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
+    usernameController.dispose();
+    dateOfBirthController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    passwordConfirmationController.dispose();
     super.dispose();
+  }
+
+  /// Set the date of birth and update the text field
+  void setDateOfBirth(DateTime date) {
+    _selectedDateOfBirth = date;
+    dateOfBirthController.text = DateFormat('MMM dd, yyyy').format(date);
+    safeNotifyListeners();
   }
 
   /// Handle sign up process
   Future<void> handleSignUp() async {
     if (!_validateInputs()) return;
 
-    await executeAsyncResult<bool>(
+    await executeAsyncResult<AuthUser>(
       () => _performSignUp(),
       errorMessage: 'Failed to create account. Please try again.',
-      onSuccess: (success) {
-        if (success) {
-          showSuccessMessage('Account created successfully!');
-          _navigateToHome();
-        }
+      onSuccess: (response) {
+        showSuccessMessage('Welcome to SpotSell, ${response.username}!');
+        clearForm();
+        _navigateToHome();
       },
     );
   }
@@ -85,39 +111,43 @@ class SignUpViewModel extends BaseViewModel {
     clearError();
 
     // First Name validation
-    if (firstName.text.trim().isEmpty) {
+    if (firstName.trim().isEmpty) {
       showErrorMessage('Please enter your first name');
       return false;
     }
 
-    if (firstName.text.trim().length < 2) {
+    if (firstName.trim().length < 2) {
       showErrorMessage('First name must be at least 2 characters long');
       return false;
     }
 
     // Last Name validation
-    if (lastName.text.trim().isEmpty) {
+    if (lastName.trim().isEmpty) {
       showErrorMessage('Please enter your last name');
       return false;
     }
 
-    if (lastName.text.trim().length < 2) {
+    if (lastName.trim().length < 2) {
       showErrorMessage('Last name must be at least 2 characters long');
       return false;
     }
 
+    if (phone.trim().length < 11) {
+      showErrorMessage('Phone number must be at least 11 characters long');
+    }
+
     // Username validation
-    if (username.text.trim().isEmpty) {
+    if (username.trim().isEmpty) {
       showErrorMessage('Please choose a username');
       return false;
     }
 
-    if (username.text.trim().length < 3) {
+    if (username.trim().length < 3) {
       showErrorMessage('Username must be at least 3 characters long');
       return false;
     }
 
-    if (!_isValidUsername(username.text.trim())) {
+    if (!_isValidUsername(username.trim())) {
       showErrorMessage(
         'Username can only contain letters, numbers, dots, and underscores',
       );
@@ -144,35 +174,35 @@ class SignUpViewModel extends BaseViewModel {
     }
 
     // Email validation
-    if (email.text.trim().isEmpty) {
+    if (email.trim().isEmpty) {
       showErrorMessage('Please enter your email address');
       return false;
     }
 
-    if (!_isValidEmail(email.text.trim())) {
+    if (!_isValidEmail(email.trim())) {
       showErrorMessage('Please enter a valid email address');
       return false;
     }
 
     // Password validation
-    if (password.text.isEmpty) {
+    if (password.isEmpty) {
       showErrorMessage('Please create a password');
       return false;
     }
 
-    final passwordValidation = _validatePassword(password.text);
+    final passwordValidation = _validatePassword(password);
     if (passwordValidation != null) {
       showErrorMessage(passwordValidation);
       return false;
     }
 
     // Password confirmation validation
-    if (passwordConfirmation.text.isEmpty) {
+    if (passwordConfirmation.isEmpty) {
       showErrorMessage('Please confirm your password');
       return false;
     }
 
-    if (password.text != passwordConfirmation.text) {
+    if (password != passwordConfirmation) {
       showErrorMessage('Passwords do not match');
       return false;
     }
@@ -229,43 +259,24 @@ class SignUpViewModel extends BaseViewModel {
   }
 
   /// Perform the actual sign up process
-  Future<Result<bool>> _performSignUp() async {
+  Future<Result<AuthUser>> _performSignUp() async {
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
+      final request = SignUpRequest(
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        username: username.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        dateOfBirth: DateTime.parse(dateOfBirth),
+        password: password,
+        passwordConfirmation: passwordConfirmation,
+        gender: gender! ? 'Male' : 'Female',
+        attachments: profilePicture != null
+            ? List.generate(1, (index) => profilePicture!).toList()
+            : null,
+      );
 
-      // Create user data object (for API call)
-      final userData = {
-        'firstName': firstName.text.trim(),
-        'lastName': lastName.text.trim(),
-        'username': username.text.trim(),
-        'email': email.text.trim(),
-        'dateOfBirth': _selectedDateOfBirth?.toIso8601String(),
-        'gender': gender == true ? 'male' : 'female',
-        'password': password.text,
-        'hasProfilePicture': profilePicture != null,
-      };
-
-      // TODO: Replace with actual API call
-      debugPrint('Creating account with data: $userData');
-      if (profilePicture != null) {
-        debugPrint('Profile picture path: ${profilePicture!.path}');
-        // In a real app, you would upload the image to your server here
-        // final imageUrl = await uploadProfilePicture(profilePicture!);
-        // userData['profilePictureUrl'] = imageUrl;
-      }
-
-      // Simulate different outcomes for testing
-      if (email.text.trim().toLowerCase() == 'test@example.com') {
-        return Result.error(Exception('This email is already registered'));
-      }
-
-      if (username.text.trim().toLowerCase() == 'admin') {
-        return Result.error(Exception('This username is not available'));
-      }
-
-      // Simulate success
-      return Result.ok(true);
+      return await _authRepository.signUp(request);
     } catch (e) {
       return Result.error(Exception('Account creation failed: $e'));
     }
@@ -294,13 +305,13 @@ class SignUpViewModel extends BaseViewModel {
 
   /// Clear all form data
   void clearForm() {
-    firstName.clear();
-    lastName.clear();
-    username.clear();
-    dateOfBirth.clear();
-    email.clear();
-    password.clear();
-    passwordConfirmation.clear();
+    firstNameController.clear();
+    lastNameController.clear();
+    usernameController.clear();
+    dateOfBirthController.clear();
+    emailController.clear();
+    passwordController.clear();
+    passwordConfirmationController.clear();
     gender = null;
     _selectedDateOfBirth = null;
     profilePicture = null;
@@ -310,17 +321,17 @@ class SignUpViewModel extends BaseViewModel {
 
   /// Get form validation status
   bool get isFormValid {
-    return firstName.text.trim().isNotEmpty &&
-        lastName.text.trim().isNotEmpty &&
-        username.text.trim().isNotEmpty &&
+    return firstNameController.text.trim().isNotEmpty &&
+        lastNameController.text.trim().isNotEmpty &&
+        usernameController.text.trim().isNotEmpty &&
         _selectedDateOfBirth != null &&
         gender != null &&
-        email.text.trim().isNotEmpty &&
-        _isValidEmail(email.text.trim()) &&
-        password.text.isNotEmpty &&
-        passwordConfirmation.text.isNotEmpty &&
-        password.text == passwordConfirmation.text &&
-        _validatePassword(password.text) == null;
+        emailController.text.trim().isNotEmpty &&
+        _isValidEmail(emailController.text.trim()) &&
+        passwordController.text.isNotEmpty &&
+        passwordConfirmationController.text.isNotEmpty &&
+        passwordController.text == passwordConfirmationController.text &&
+        _validatePassword(passwordController.text) == null;
   }
 
   /// Check if we can enable the sign up button
@@ -330,10 +341,10 @@ class SignUpViewModel extends BaseViewModel {
 
   /// Get password strength indicator
   double get passwordStrength {
-    if (password.text.isEmpty) return 0.0;
+    if (passwordController.text.isEmpty) return 0.0;
 
     int score = 0;
-    final pwd = password.text;
+    final pwd = passwordController.text;
 
     // Length check
     if (pwd.length >= 8) score++;
@@ -445,7 +456,7 @@ class SignUpViewModel extends BaseViewModel {
 
       case 'passwordConfirmation':
         if (value.isEmpty) return 'Please confirm your password';
-        if (value != password.text) return 'Passwords do not match';
+        if (value != passwordController.text) return 'Passwords do not match';
         return null;
 
       default:

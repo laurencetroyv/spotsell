@@ -1,11 +1,16 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import 'package:dio/dio.dart';
+
+import 'package:spotsell/src/data/repositories/auth_repository.dart';
+import 'package:spotsell/src/data/repositories/auth_repository_impl.dart';
 import 'package:spotsell/src/data/services/navigation_service.dart';
 import 'package:spotsell/src/data/services/secure_storage_service.dart';
 import 'package:spotsell/src/ui/services/cupertino_navigation_service.dart';
 import 'package:spotsell/src/ui/services/fluent_navigation_service.dart';
-// TODO: Import other platform services when created
 import 'package:spotsell/src/ui/services/material_navigation_service.dart';
 import 'package:spotsell/src/ui/services/yaru_navigation_service.dart';
 
@@ -38,10 +43,13 @@ class ServiceLocator {
       // Register core services
       await _registerCoreServices();
 
+      // Register HTTP client
+      await _registerHttpClient();
+
       // Register platform-specific services
       await _registerPlatformServices(navigatorKey);
 
-      // Register repositories (when created)
+      // Register repositories
       await _registerRepositories();
 
       // Register use cases (when created)
@@ -61,6 +69,33 @@ class ServiceLocator {
     registerSingleton<SecureStorageService>(SecureStorageService());
 
     debugPrint('Core services registered');
+  }
+
+  /// Register HTTP client (Dio) with configuration
+  Future<void> _registerHttpClient() async {
+    final dio = Dio();
+
+    // Configure Dio with default options
+    dio.options.connectTimeout = const Duration(seconds: 30);
+    dio.options.receiveTimeout = const Duration(seconds: 30);
+    dio.options.sendTimeout = const Duration(seconds: 30);
+
+    // Add interceptors for logging in debug mode
+    if (kDebugMode) {
+      dio.interceptors.add(
+        LogInterceptor(
+          requestBody: true,
+          responseBody: true,
+          requestHeader: true,
+          responseHeader: false,
+          error: true,
+          logPrint: (obj) => debugPrint(obj.toString()),
+        ),
+      );
+    }
+
+    registerSingleton<Dio>(dio);
+    debugPrint('HTTP client (Dio) registered');
   }
 
   /// Register platform-specific services
@@ -94,13 +129,15 @@ class ServiceLocator {
     return MaterialNavigationService(navigatorKey);
   }
 
-  /// Register repositories (placeholder for future implementation)
+  /// Register repositories
   Future<void> _registerRepositories() async {
-    // TODO: Register repositories when created
-    // Example:
-    // registerFactory<AuthRepository>(() => AuthRepositoryImpl(
-    //   secureStorageService: get<SecureStorageService>(),
-    // ));
+    // Register AuthRepository as singleton
+    registerSingleton<AuthRepository>(
+      AuthRepositoryImpl(
+        dio: get<Dio>(),
+        secureStorage: get<SecureStorageService>(),
+      ),
+    );
 
     debugPrint('Repositories registered');
   }

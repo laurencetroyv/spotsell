@@ -307,7 +307,7 @@ class _SignUpScreenState extends State<SignUpScreen>
               children: [
                 Expanded(
                   child: AdaptiveTextField(
-                    controller: _viewModel.firstName,
+                    controller: _viewModel.firstNameController,
                     label: 'First Name',
                     placeholder: 'Enter first name',
                     prefixIcon: Icons.person_outline,
@@ -320,7 +320,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                 SizedBox(width: responsive.mediumSpacing),
                 Expanded(
                   child: AdaptiveTextField(
-                    controller: _viewModel.lastName,
+                    controller: _viewModel.lastNameController,
                     label: 'Last Name',
                     placeholder: 'Enter last name',
                     prefixIcon: Icons.person_outline,
@@ -336,11 +336,26 @@ class _SignUpScreenState extends State<SignUpScreen>
 
           SizedBox(height: responsive.mediumSpacing),
 
+          // Phone Number field
+          _buildAnimatedSlide(
+            delay: 500,
+            child: AdaptiveTextField(
+              controller: _viewModel.phoneController,
+              label: 'Phone Number',
+              placeholder: 'Enter your phone number',
+              prefixIcon: Icons.contact_phone,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.next,
+            ),
+          ),
+
+          SizedBox(height: responsive.mediumSpacing),
+
           // Username field
           _buildAnimatedSlide(
             delay: 400,
             child: AdaptiveTextField(
-              controller: _viewModel.username,
+              controller: _viewModel.usernameController,
               label: 'Username',
               placeholder: 'Choose a username',
               prefixIcon: Icons.alternate_email,
@@ -358,7 +373,7 @@ class _SignUpScreenState extends State<SignUpScreen>
           _buildAnimatedSlide(
             delay: 500,
             child: AdaptiveTextField(
-              controller: _viewModel.email,
+              controller: _viewModel.emailController,
               label: 'Email',
               placeholder: 'Enter your email',
               prefixIcon: Icons.email_outlined,
@@ -394,7 +409,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                 onTap: () => _selectDateOfBirth(context),
                 child: AbsorbPointer(
                   child: AdaptiveTextField(
-                    controller: _viewModel.dateOfBirth,
+                    controller: _viewModel.dateOfBirthController,
                     label: 'Date of Birth',
                     placeholder: 'Select your date of birth',
                     prefixIcon: Icons.calendar_today_outlined,
@@ -417,7 +432,7 @@ class _SignUpScreenState extends State<SignUpScreen>
           _buildAnimatedSlide(
             delay: 800,
             child: AdaptiveTextField(
-              controller: _viewModel.password,
+              controller: _viewModel.passwordController,
               label: 'Password',
               placeholder: 'Create a password',
               prefixIcon: Icons.lock_outline,
@@ -432,7 +447,7 @@ class _SignUpScreenState extends State<SignUpScreen>
           _buildAnimatedSlide(
             delay: 900,
             child: AdaptiveTextField(
-              controller: _viewModel.passwordConfirmation,
+              controller: _viewModel.passwordConfirmationController,
               label: 'Confirm Password',
               placeholder: 'Confirm your password',
               prefixIcon: Icons.lock_outline,

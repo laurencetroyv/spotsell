@@ -7,6 +7,8 @@ class Constants {
   static const logo = 'assets/logo.svg';
   static const logoWithoutName = 'assets/logo-wo-name.svg';
 
+  static const baseUrl = 'http://192.168.1.12:8080/api';
+
   static const List<CarouselItem> carouselItems = [
     CarouselItem(
       title: "Sell",

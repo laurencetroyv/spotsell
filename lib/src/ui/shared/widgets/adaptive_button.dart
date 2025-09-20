@@ -1,8 +1,10 @@
 import 'dart:io';
 
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'package:fluent_ui/fluent_ui.dart' as fl;
+
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
 
@@ -86,7 +88,7 @@ class AdaptiveButton extends StatelessWidget {
     }
 
     // Wrap with tooltip if provided
-    if (tooltip != null) {
+    if (tooltip != null && Platform.isWindows) {
       button = Tooltip(message: tooltip!, child: button);
     }
 

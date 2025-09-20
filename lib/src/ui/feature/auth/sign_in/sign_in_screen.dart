@@ -526,10 +526,8 @@ class _SignInScreenState extends State<SignInScreen>
                       TextStyleType.body,
                     ),
                   ),
-                  AdaptiveButton(
-                    onPressed: _viewModel.handleSignUp,
-                    type: AdaptiveButtonType.text,
-                    size: AdaptiveButtonSize.small,
+                  GestureDetector(
+                    onTap: _viewModel.handleSignUp,
                     child: Text(
                       'Create Account',
                       style: TextStyle(

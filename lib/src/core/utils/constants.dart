@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+
 import 'package:spotsell/src/ui/feature/welcome/domain/entity/carousel_item.dart';
 
 class Constants {
   static const title = 'SpotSell';
+  static const logo = 'assets/logo.svg';
+  static const logoWithoutName = 'assets/logo-wo-name.svg';
 
   static const List<CarouselItem> carouselItems = [
     CarouselItem(

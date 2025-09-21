@@ -76,18 +76,20 @@ class _SignInScreenState extends State<SignInScreen>
             listenable: _viewModel,
             builder: (context, child) {
               if (_viewModel.hasError) {
+                final message = _viewModel.errorMessage!.split(
+                  'Exception: ',
+                )[1];
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _viewModel.showErrorMessage(_viewModel.errorMessage!);
+                  _viewModel.showErrorMessage(message);
                 });
+                _viewModel.clearError();
               }
 
               final responsive = ResponsiveBreakpoints.of(context);
 
               return LayoutBuilder(
                 builder: (context, constraints) {
-                  if (responsive.isTablet ||
-                      responsive.isDesktop ||
-                      responsive.isWide) {
+                  if (responsive.isDesktop) {
                     return _buildDesktopLayout(context, responsive);
                   }
                   return _buildMobileLayout(context, responsive);

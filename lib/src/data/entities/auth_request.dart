@@ -92,10 +92,11 @@ class AuthUser {
   });
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
+    final data = json['data'];
     late List<Attachment>? attachments;
 
-    if (json['attachments'] != null) {
-      final tmp = List.from(json['attachments']);
+    if (data['attachments'] != null) {
+      final tmp = List.from(data['attachments']);
 
       attachments = tmp.map((e) => Attachment.fromJson(e)).toList();
     } else {
@@ -103,18 +104,18 @@ class AuthUser {
     }
 
     return AuthUser(
-      id: json['id'],
-      firstName: json['firstName'],
-      lastName: json['lastName'],
-      username: json['username'],
-      email: json['email'],
-      gender: json['gender'],
-      phone: json['phone'],
-      dateOfBirth: DateTime.parse(json['dateOfBirth']),
+      id: data['id'],
+      firstName: data['first_name'],
+      lastName: data['last_name'],
+      username: data['username'],
+      email: data['email'],
+      gender: data['gender'],
+      phone: data['phone'],
+      dateOfBirth: DateTime.parse(data['date_of_birth']),
       attachments: attachments,
-      token: json['token'],
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      token: data['token'],
+      createdAt: DateTime.parse(data['created_at']),
+      updatedAt: DateTime.parse(data['updated_at']),
     );
   }
 }

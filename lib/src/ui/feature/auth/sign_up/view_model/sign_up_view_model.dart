@@ -84,7 +84,6 @@ class SignUpViewModel extends BaseViewModel {
 
     await executeAsyncResult<AuthUser>(
       () => _performSignUp(),
-      errorMessage: 'Failed to create account. Please try again.',
       onSuccess: (response) {
         showSuccessMessage('Welcome to SpotSell, ${response.username}!');
         clearForm();
@@ -267,7 +266,7 @@ class SignUpViewModel extends BaseViewModel {
         username: username.trim(),
         email: email.trim(),
         phone: phone.trim(),
-        dateOfBirth: DateTime.parse(dateOfBirth),
+        dateOfBirth: _selectedDateOfBirth!,
         password: password,
         passwordConfirmation: passwordConfirmation,
         gender: gender! ? 'Male' : 'Female',

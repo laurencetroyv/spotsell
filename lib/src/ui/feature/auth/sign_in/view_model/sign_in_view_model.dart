@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart';
 
+import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/utils/result.dart';
+import 'package:spotsell/src/data/entities/auth_request.dart';
+import 'package:spotsell/src/data/repositories/auth_repository.dart';
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 
 class SignInViewModel extends BaseViewModel {
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
+
+  late final AuthRepository _authRepository;
+
+  @override
+  void initialize() {
+    super.initialize();
+    try {
+      _authRepository = getService<AuthRepository>();
+    } catch (e) {
+      debugPrint('Warning: AuthRepository not available in ServiceLocator: $e');
+      setError('Authentication service unavailable. Please restart the app.');
+    }
+  }
 
   @override
   void dispose() {
@@ -19,15 +35,11 @@ class SignInViewModel extends BaseViewModel {
   Future<void> handleSignIn() async {
     if (!_validateInputs()) return;
 
-    await executeAsyncResult<bool>(
+    await executeAsyncResult<AuthUser>(
       () => _performSignIn(),
-      errorMessage:
-          'Failed to sign in. Please check your credentials and try again.',
-      onSuccess: (success) {
-        if (success) {
-          showSuccessMessage('Welcome back!');
-          _navigateToHome();
-        }
+      onSuccess: (response) {
+        showSuccessMessage('Welcome back. ${response.username}');
+        _navigateToHome();
       },
     );
   }
@@ -103,19 +115,14 @@ class SignInViewModel extends BaseViewModel {
   }
 
   /// Perform the actual sign in process
-  Future<Result<bool>> _performSignIn() async {
+  Future<Result<AuthUser>> _performSignIn() async {
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
+      final request = SignInRequest(
+        email: email.text.trim(),
+        password: password.text.trim(),
+      );
 
-      // Demo logic - accept any email/password for now
-      // TODO: Replace with actual authentication logic
-      if (email.text.trim().isNotEmpty && password.text.isNotEmpty) {
-        // Simulate success
-        return Result.ok(true);
-      } else {
-        return Result.error(Exception('Invalid credentials'));
-      }
+      return await _authRepository.signIn(request);
     } catch (e) {
       return Result.error(Exception('Sign in failed: $e'));
     }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:logger/web.dart';
 
+import 'package:spotsell/src/core/utils/constants.dart';
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/auth_request.dart';
 import 'package:spotsell/src/data/repositories/auth_repository.dart';
@@ -16,8 +17,7 @@ class AuthRepositoryImpl implements AuthRepository {
   /// API Endpouints
   static const String _signInUrlEndpoint = '/log-in';
   static const String _signUpUrlEndpoint = '/sign-up';
-  // TODO: Update sign out url
-  static const String _signOutUrlEndpoint = '';
+  static const String _signOutUrlEndpoint = '/sign-out';
   static const String _getCurrentUserUrlEndpoint = '/authenticated';
   static const String _updateProfileUrlEndpoint = '/authenticated';
   static const String _deleteAccountUrlEndpoint = '/authenticated';
@@ -31,6 +31,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   void _setupDioInterceptors() {
+    _dio.options.baseUrl = Constants.baseUrl;
     // Request interceptor to add auth token
     _dio.interceptors.add(
       InterceptorsWrapper(
@@ -104,17 +105,19 @@ class AuthRepositoryImpl implements AuthRepository {
       FormData formData;
 
       if (request.attachments != null && request.attachments!.isNotEmpty) {
-        final attachments = request.attachments!.map((element) async {
-          final fileName = element.path.split('/').last;
-          return {
-            'attachments[]': await MultipartFile.fromFile(
-              element.path,
-              filename: fileName,
-            ),
-          };
-        }).toList();
+        final data = request.toJson();
 
-        formData = FormData.fromMap({...request.toJson(), ...attachments});
+        // Add attachments to the form data
+        final attachmentFiles = <MultipartFile>[];
+        for (final file in request.attachments!) {
+          final fileName = file.path.split('/').last;
+          attachmentFiles.add(
+            await MultipartFile.fromFile(file.path, filename: fileName),
+          );
+        }
+
+        data['attachments[]'] = attachmentFiles;
+        formData = FormData.fromMap(data);
       } else {
         formData = FormData.fromMap(request.toJson());
       }

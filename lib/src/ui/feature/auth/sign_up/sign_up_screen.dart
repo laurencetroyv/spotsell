@@ -64,7 +64,12 @@ class _SignUpScreenState extends State<SignUpScreen>
           listenable: _viewModel,
           builder: (context, child) {
             if (_viewModel.hasError) {
-              return _buildErrorState(context);
+              final message = _viewModel.errorMessage!.split('Exception: ')[1];
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _viewModel.showErrorMessage(message);
+              });
+              _viewModel.clearError();
             }
 
             if (responsive.isDesktop) {
@@ -73,40 +78,6 @@ class _SignUpScreenState extends State<SignUpScreen>
               return _buildMobileLayout(context, responsive);
             }
           },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorState(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Something went wrong',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _viewModel.errorMessage ?? 'Unknown error occurred',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            AdaptiveButton(
-              onPressed: _viewModel.clearError,
-              child: const Text('Try Again'),
-            ),
-          ],
         ),
       ),
     );
@@ -343,6 +314,7 @@ class _SignUpScreenState extends State<SignUpScreen>
               controller: _viewModel.phoneController,
               label: 'Phone Number',
               placeholder: 'Enter your phone number',
+              maxLength: 15,
               prefixIcon: Icons.contact_phone,
               keyboardType: TextInputType.phone,
               textInputAction: TextInputAction.next,

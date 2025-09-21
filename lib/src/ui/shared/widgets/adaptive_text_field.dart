@@ -20,6 +20,7 @@ class AdaptiveTextField extends StatefulWidget {
     this.textInputAction,
     this.obscureText = false,
     this.maxLines = 1,
+    this.maxLength,
     this.onChanged,
     this.onSubmitted,
     this.focusNode,
@@ -37,6 +38,7 @@ class AdaptiveTextField extends StatefulWidget {
   final TextInputAction? textInputAction;
   final bool obscureText;
   final int? maxLines;
+  final int? maxLength;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final FocusNode? focusNode;
@@ -118,6 +120,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
       textInputAction: widget.textInputAction,
       obscureText: _isObscured,
       maxLines: widget.maxLines,
+      maxLength: widget.maxLength,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
       focusNode: widget.focusNode,
@@ -165,6 +168,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
       textInputAction: widget.textInputAction,
       obscureText: _isObscured,
       maxLines: widget.maxLines,
+      maxLength: widget.maxLength,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
       focusNode: widget.focusNode,
@@ -202,6 +206,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
       textInputAction: widget.textInputAction,
       obscureText: _isObscured,
       maxLines: widget.maxLines,
+      maxLength: widget.maxLength,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
       focusNode: widget.focusNode,

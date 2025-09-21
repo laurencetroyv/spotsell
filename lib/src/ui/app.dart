@@ -1,8 +1,10 @@
 import 'dart:io';
 
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'package:fluent_ui/fluent_ui.dart' as fl;
+
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/navigation/app_router.dart';
 import 'package:spotsell/src/core/theme/theme_manager.dart';
@@ -187,7 +189,14 @@ class App extends StatelessWidget {
         theme: ThemeManager.fluentLightTheme(context),
         darkTheme: ThemeManager.fluentDarkTheme(context),
         builder: (context, child) {
-          return MediaQuery(data: MediaQuery.of(context), child: child!);
+          return fl.Overlay(
+            initialEntries: [
+              fl.OverlayEntry(
+                builder: (context) =>
+                    MediaQuery(data: MediaQuery.of(context), child: child!),
+              ),
+            ],
+          );
         },
       ),
     );

@@ -1,5 +1,7 @@
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 import 'package:flutter/material.dart';
+
+import 'package:fluent_ui/fluent_ui.dart' as fl;
+
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/services/navigation_service.dart';
 
@@ -246,39 +248,19 @@ class FluentNavigationService implements NavigationService {
         );
       }
 
-      // Use Fluent InfoBar for messages
-      final infoBar = fl.InfoBar(
-        title: Text(_getTitleForMessageType(type)),
-        content: Text(message),
-        severity: _getSeverityForMessageType(type),
-        isLong: message.length > 50,
-      );
-
-      // Show InfoBar using overlay
-      final overlay = Overlay.of(_context!);
-      late OverlayEntry overlayEntry;
-
-      overlayEntry = OverlayEntry(
-        builder: (context) => Positioned(
-          top: 50,
-          right: 20,
-          left: 20,
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: infoBar,
-            ),
+      fl.displayInfoBar(
+        _context!,
+        builder: (context, close) => fl.InfoBar(
+          title: Text(_getTitleForMessageType(type)),
+          content: Text(message),
+          severity: _getSeverityForMessageType(type),
+          isLong: message.length > 50,
+          action: fl.IconButton(
+            icon: const Icon(fl.FluentIcons.clear),
+            onPressed: close,
           ),
         ),
-      );
-
-      overlay.insert(overlayEntry);
-
-      // Auto-dismiss after duration
-      Future.delayed(
-        duration ?? const Duration(seconds: 4),
-        () => overlayEntry.remove(),
+        duration: duration ?? const Duration(seconds: 3),
       );
 
       return Result.ok(null);

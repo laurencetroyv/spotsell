@@ -1,8 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:spotsell/src/ui/feature/welcome/view_model/welcome_view_model.dart';
-import 'package:spotsell/src/ui/feature/welcome/widgets/carousel_page_indicator_widget.dart';
-import 'package:spotsell/src/ui/feature/welcome/widgets/carousel_widget.dart';
+
+import 'package:spotsell/src/ui/feature/guests/welcome/view_model/welcome_view_model.dart';
+import 'package:spotsell/src/ui/feature/guests/welcome/widgets/carousel_page_indicator_widget.dart';
+import 'package:spotsell/src/ui/feature/guests/welcome/widgets/carousel_widget.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_button.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 

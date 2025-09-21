@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+
 import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/utils/constants.dart';
-import 'package:spotsell/src/ui/feature/welcome/domain/entity/carousel_item.dart';
+import 'package:spotsell/src/ui/feature/guests/welcome/domain/entity/carousel_item.dart';
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 
 /// ViewModel for the Welcome Screen
@@ -65,8 +66,8 @@ class WelcomeViewModel extends BaseViewModel {
 
   /// Navigate to previous carousel page
   void previousPage() {
-    _currentIndex = _currentIndex > 0 
-        ? _currentIndex - 1 
+    _currentIndex = _currentIndex > 0
+        ? _currentIndex - 1
         : carouselItems.length - 1;
     safeNotifyListeners();
   }
@@ -111,7 +112,7 @@ class WelcomeViewModel extends BaseViewModel {
   void onUserInteraction() {
     if (_isAutoPlayActive) {
       _autoPlayTimer?.cancel();
-      
+
       // Resume auto-play after 5 seconds of no interaction
       Timer(const Duration(seconds: 5), () {
         if (_isAutoPlayActive && !_isDisposed) {
@@ -125,7 +126,7 @@ class WelcomeViewModel extends BaseViewModel {
   void onNavigationError(Exception error, String message) {
     // Override to show user-friendly error messages
     showErrorMessage(message);
-    
+
     if (kDebugMode) {
       print('WelcomeViewModel navigation error: $error');
     }

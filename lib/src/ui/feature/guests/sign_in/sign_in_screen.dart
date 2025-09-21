@@ -5,7 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
 import 'package:spotsell/src/core/utils/constants.dart';
-import 'package:spotsell/src/ui/feature/auth/sign_in/view_model/sign_in_view_model.dart';
+import 'package:spotsell/src/ui/feature/guests/sign_in/view_model/sign_in_view_model.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_button.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_text_field.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';

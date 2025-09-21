@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:spotsell/src/ui/feature/welcome/domain/entity/carousel_item.dart';
+
+import 'package:spotsell/src/ui/feature/guests/welcome/domain/entity/carousel_item.dart';
 
 class CarouselWidget extends StatelessWidget {
   const CarouselWidget(this.item, {super.key});

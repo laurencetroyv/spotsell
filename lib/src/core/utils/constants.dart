@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:spotsell/src/ui/feature/welcome/domain/entity/carousel_item.dart';
+import 'package:spotsell/src/ui/feature/guests/welcome/domain/entity/carousel_item.dart';
 
 class Constants {
   static const title = 'SpotSell';

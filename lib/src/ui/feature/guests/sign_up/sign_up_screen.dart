@@ -11,7 +11,7 @@ import 'package:intl/intl.dart';
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/utils/constants.dart';
-import 'package:spotsell/src/ui/feature/auth/sign_up/view_model/sign_up_view_model.dart';
+import 'package:spotsell/src/ui/feature/guests/sign_up/view_model/sign_up_view_model.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_button.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_text_field.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';

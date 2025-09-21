@@ -7,9 +7,9 @@ import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/navigation/route_names.dart';
 // TODO: Import other screens when created
-import 'package:spotsell/src/ui/feature/auth/sign_in/sign_in_screen.dart';
-import 'package:spotsell/src/ui/feature/auth/sign_up/sign_up_screen.dart';
-import 'package:spotsell/src/ui/feature/welcome/welcome_screen.dart';
+import 'package:spotsell/src/ui/feature/guests/sign_in/sign_in_screen.dart';
+import 'package:spotsell/src/ui/feature/guests/sign_up/sign_up_screen.dart';
+import 'package:spotsell/src/ui/feature/guests/welcome/welcome_screen.dart';
 
 /// Central router configuration for the application
 /// Handles platform-aware route generation and navigation transitions

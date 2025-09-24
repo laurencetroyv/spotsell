@@ -106,23 +106,29 @@ class ServiceLocator {
     final navigationService = _createNavigationService(navigatorKey);
     registerSingleton<NavigationService>(navigationService);
 
-    debugPrint('Platform services registered for ${Platform.operatingSystem}');
+    if (!kIsWeb) {
+      debugPrint(
+        'Platform services registered for ${Platform.operatingSystem}',
+      );
+    }
   }
 
   /// Create the appropriate navigation service for the current platform
   NavigationService _createNavigationService(
     GlobalKey<NavigatorState> navigatorKey,
   ) {
-    if (Platform.isMacOS || Platform.isIOS) {
-      return CupertinoNavigationService(navigatorKey);
-    }
+    if (!kIsWeb) {
+      if (Platform.isMacOS || Platform.isIOS) {
+        return CupertinoNavigationService(navigatorKey);
+      }
 
-    if (Platform.isWindows) {
-      return FluentNavigationService(navigatorKey);
-    }
+      if (Platform.isWindows) {
+        return FluentNavigationService(navigatorKey);
+      }
 
-    if (Platform.isLinux || Platform.isFuchsia) {
-      return YaruNavigationService(navigatorKey);
+      if (Platform.isLinux || Platform.isFuchsia) {
+        return YaruNavigationService(navigatorKey);
+      }
     }
 
     // Default to Material (Android and fallback)

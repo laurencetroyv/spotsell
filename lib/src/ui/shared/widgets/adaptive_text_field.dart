@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -67,17 +68,21 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
   Widget build(BuildContext context) {
     Widget textfield;
 
-    if (Platform.isMacOS || Platform.isIOS) {
-      textfield = _buildCupertinoTextField(context);
-    } else if (Platform.isWindows) {
-      textfield = _buildFluentTextField(context);
+    if (!kIsWeb) {
+      if (Platform.isMacOS || Platform.isIOS) {
+        textfield = _buildCupertinoTextField(context);
+      } else {
+        textfield = _buildFluentTextField(context);
+      }
     } else {
       textfield = _buildMaterialTextField(context);
     }
 
     // For Fluent UI, wrap with InfoLabel if label is provided
-    if (widget.label != null && Platform.isWindows) {
-      textfield = fl.InfoLabel(label: widget.label!, child: textfield);
+    if (!kIsWeb) {
+      if (widget.label != null && Platform.isWindows) {
+        textfield = fl.InfoLabel(label: widget.label!, child: textfield);
+      }
     }
 
     return SizedBox(width: widget.width, child: textfield);

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:fluent_ui/fluent_ui.dart' as fl;
@@ -48,16 +49,18 @@ class AppRouter {
     }
 
     // Create platform-specific route
-    if (Platform.isMacOS || Platform.isIOS) {
-      return _createCupertinoRoute(widget, settings);
-    }
+    if (!kIsWeb) {
+      if (Platform.isMacOS || Platform.isIOS) {
+        return _createCupertinoRoute(widget, settings);
+      }
 
-    if (Platform.isWindows) {
-      return _createFluentRoute(widget, settings);
-    }
+      if (Platform.isWindows) {
+        return _createFluentRoute(widget, settings);
+      }
 
-    if (Platform.isLinux || Platform.isFuchsia) {
-      return _createYaruRoute(widget, settings);
+      if (Platform.isLinux || Platform.isFuchsia) {
+        return _createYaruRoute(widget, settings);
+      }
     }
 
     // Default to Material (Android and fallback)

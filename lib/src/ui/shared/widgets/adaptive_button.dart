@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:fluent_ui/fluent_ui.dart' as fl;
@@ -64,20 +65,22 @@ class AdaptiveButton extends StatelessWidget {
 
     Widget button;
 
-    if (Platform.isMacOS || Platform.isIOS) {
-      button = _buildCupertinoButton(
-        context,
-        responsive,
-        effectivelyEnabled,
-        effectiveChild,
-      );
-    } else if (Platform.isWindows) {
-      button = _buildFluentButton(
-        context,
-        responsive,
-        effectivelyEnabled,
-        effectiveChild,
-      );
+    if (!kIsWeb) {
+      if (Platform.isMacOS || Platform.isIOS) {
+        button = _buildCupertinoButton(
+          context,
+          responsive,
+          effectivelyEnabled,
+          effectiveChild,
+        );
+      } else {
+        button = _buildFluentButton(
+          context,
+          responsive,
+          effectivelyEnabled,
+          effectiveChild,
+        );
+      }
     } else {
       button = _buildMaterialButton(
         context,
@@ -88,8 +91,10 @@ class AdaptiveButton extends StatelessWidget {
     }
 
     // Wrap with tooltip if provided
-    if (tooltip != null && Platform.isWindows) {
-      button = Tooltip(message: tooltip!, child: button);
+    if (!kIsWeb) {
+      if (tooltip != null && Platform.isWindows) {
+        button = Tooltip(message: tooltip!, child: button);
+      }
     }
 
     // Add semantic label if provided
@@ -109,27 +114,29 @@ class AdaptiveButton extends StatelessWidget {
   Widget _buildLoadingIndicator(BuildContext context) {
     final size = _getLoadingIndicatorSize();
 
-    if (Platform.isMacOS || Platform.isIOS) {
-      return SizedBox(
-        width: size,
-        height: size,
-        child: CupertinoActivityIndicator(
-          color:
-              foregroundColor ??
-              CupertinoTheme.of(context).primaryContrastingColor,
-        ),
-      );
-    }
+    if (!kIsWeb) {
+      if (Platform.isMacOS || Platform.isIOS) {
+        return SizedBox(
+          width: size,
+          height: size,
+          child: CupertinoActivityIndicator(
+            color:
+                foregroundColor ??
+                CupertinoTheme.of(context).primaryContrastingColor,
+          ),
+        );
+      }
 
-    if (Platform.isWindows) {
-      return SizedBox(
-        width: size,
-        height: size,
-        child: fl.ProgressRing(
-          strokeWidth: 2,
-          value: null, // Indeterminate
-        ),
-      );
+      if (Platform.isWindows) {
+        return SizedBox(
+          width: size,
+          height: size,
+          child: fl.ProgressRing(
+            strokeWidth: 2,
+            value: null, // Indeterminate
+          ),
+        );
+      }
     }
 
     // Material and Yaru

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:fluent_ui/fluent_ui.dart' as fl;
@@ -39,12 +40,14 @@ class AdaptiveScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    if (Platform.isMacOS || Platform.isIOS) {
-      return _buildCupertinoScaffold(context, responsive);
-    }
+    if (!kIsWeb) {
+      if (Platform.isMacOS || Platform.isIOS) {
+        return _buildCupertinoScaffold(context, responsive);
+      }
 
-    if (Platform.isWindows) {
-      return _buildFluentScaffold(context, responsive);
+      if (Platform.isWindows) {
+        return _buildFluentScaffold(context, responsive);
+      }
     }
 
     return _buildMaterialScaffold(context, responsive);

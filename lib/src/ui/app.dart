@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:fluent_ui/fluent_ui.dart' as fl;
@@ -100,16 +101,18 @@ class App extends StatelessWidget {
   }
 
   Widget _buildPlatformAwareApp(BuildContext context) {
-    if (Platform.isMacOS || Platform.isIOS) {
-      return _buildCupertinoApp(context);
-    }
+    if (!kIsWeb) {
+      if (Platform.isMacOS || Platform.isIOS) {
+        return _buildCupertinoApp(context);
+      }
 
-    if (Platform.isLinux || Platform.isFuchsia) {
-      return _buildYaruApp(context);
-    }
+      if (Platform.isLinux || Platform.isFuchsia) {
+        return _buildYaruApp(context);
+      }
 
-    if (Platform.isWindows) {
-      return _buildFluentApp(context);
+      if (Platform.isWindows) {
+        return _buildFluentApp(context);
+      }
     }
 
     return _buildMaterialApp(context);

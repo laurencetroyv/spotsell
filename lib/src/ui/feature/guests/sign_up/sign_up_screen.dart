@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -356,7 +357,7 @@ class _SignUpScreenState extends State<SignUpScreen>
 
           SizedBox(height: responsive.mediumSpacing),
 
-          if (Platform.isWindows)
+          if (!kIsWeb && Platform.isWindows)
             _buildAnimatedSlide(
               delay: 600,
               child: fl.InfoLabel(
@@ -596,58 +597,59 @@ class _SignUpScreenState extends State<SignUpScreen>
 
     DateTime? selectedDate;
 
-    if (Platform.isIOS || Platform.isMacOS) {
-      // Use Cupertino date picker
-      await showCupertinoModalPopup<void>(
-        context: context,
-        builder: (context) => Container(
-          height: 250,
-          color: CupertinoColors.systemBackground.resolveFrom(context),
-          child: Column(
-            children: [
-              Container(
-                height: 50,
-                decoration: BoxDecoration(
-                  color: CupertinoColors.systemGrey6.resolveFrom(context),
-                  border: const Border(
-                    bottom: BorderSide(color: CupertinoColors.separator),
+    if (!kIsWeb) {
+      if (Platform.isIOS || Platform.isMacOS) {
+        // Use Cupertino date picker
+        await showCupertinoModalPopup<void>(
+          context: context,
+          builder: (context) => Container(
+            height: 250,
+            color: CupertinoColors.systemBackground.resolveFrom(context),
+            child: Column(
+              children: [
+                Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemGrey6.resolveFrom(context),
+                    border: const Border(
+                      bottom: BorderSide(color: CupertinoColors.separator),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CupertinoButton(
+                        child: const Text('Cancel'),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      CupertinoButton(
+                        child: const Text('Done'),
+                        onPressed: () {
+                          if (selectedDate != null) {
+                            _viewModel.setDateOfBirth(selectedDate!);
+                          }
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CupertinoButton(
-                      child: const Text('Cancel'),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    CupertinoButton(
-                      child: const Text('Done'),
-                      onPressed: () {
-                        if (selectedDate != null) {
-                          _viewModel.setDateOfBirth(selectedDate!);
-                        }
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
+                Expanded(
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.date,
+                    initialDateTime: eighteenYearsAgo,
+                    minimumDate: hundredYearsAgo,
+                    maximumDate: eighteenYearsAgo,
+                    onDateTimeChanged: (DateTime date) {
+                      selectedDate = date;
+                    },
+                  ),
                 ),
-              ),
-              Expanded(
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.date,
-                  initialDateTime: eighteenYearsAgo,
-                  minimumDate: hundredYearsAgo,
-                  maximumDate: eighteenYearsAgo,
-                  onDateTimeChanged: (DateTime date) {
-                    selectedDate = date;
-                  },
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
-    } else if (Platform.isWindows) {
+        );
+      }
     } else {
       // Use Material date picker
       selectedDate = await showDatePicker(
@@ -762,10 +764,12 @@ class _SignUpScreenState extends State<SignUpScreen>
   }
 
   void _showImagePickerOptions(BuildContext context) {
-    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-      _showDesktopImagePicker(context);
-    } else if (Platform.isIOS) {
-      _showCupertinoImagePicker(context);
+    if (!kIsWeb) {
+      if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+        _showDesktopImagePicker(context);
+      } else {
+        _showCupertinoImagePicker(context);
+      }
     } else {
       _showMaterialImagePicker(context);
     }

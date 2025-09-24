@@ -71,8 +71,10 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
     if (!kIsWeb) {
       if (Platform.isMacOS || Platform.isIOS) {
         textfield = _buildCupertinoTextField(context);
-      } else {
+      } else if (Platform.isWindows) {
         textfield = _buildFluentTextField(context);
+      } else {
+        textfield = _buildMaterialTextField(context);
       }
     } else {
       textfield = _buildMaterialTextField(context);

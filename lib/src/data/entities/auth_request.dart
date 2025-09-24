@@ -74,6 +74,7 @@ class AuthUser {
   final String firstName, lastName, username, email, gender, token, phone;
   final List<String>? role;
   final DateTime dateOfBirth, createdAt, updatedAt;
+  final DateTime? verifiedAt;
   final List<Attachment>? attachments;
 
   AuthUser({
@@ -89,6 +90,7 @@ class AuthUser {
     required this.token,
     required this.createdAt,
     required this.updatedAt,
+    this.verifiedAt,
     this.attachments,
   });
 
@@ -116,6 +118,9 @@ class AuthUser {
       phone: data['phone'],
       role: List.from(data['roles']),
       dateOfBirth: DateTime.parse(data['date_of_birth']),
+      verifiedAt: data['verifiedAt'] != null
+          ? DateTime.parse(data['verifiedAt'])
+          : null,
       attachments: attachments,
       token: json['token'] ?? token,
       createdAt: DateTime.parse(data['created_at']),

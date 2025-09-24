@@ -356,6 +356,8 @@ class ThemeUtils {
             return CupertinoIcons.back;
           case AdaptiveIcon.close:
             return CupertinoIcons.xmark;
+          case AdaptiveIcon.signOut:
+            return CupertinoIcons.arrow_right_square;
         }
       }
 
@@ -377,6 +379,8 @@ class ThemeUtils {
             return fl.FluentIcons.back;
           case AdaptiveIcon.close:
             return fl.FluentIcons.chrome_close;
+          case AdaptiveIcon.signOut:
+            fl.FluentIcons.sign_out;
         }
       }
     }
@@ -399,6 +403,8 @@ class ThemeUtils {
         return Icons.arrow_back;
       case AdaptiveIcon.close:
         return Icons.close;
+      case AdaptiveIcon.signOut:
+        return Icons.logout;
     }
   }
 }
@@ -416,4 +422,5 @@ enum AdaptiveIcon {
   add,
   back,
   close,
+  signOut,
 }

@@ -7,6 +7,8 @@ import 'package:dio/dio.dart';
 
 import 'package:spotsell/src/data/repositories/auth_repository.dart';
 import 'package:spotsell/src/data/repositories/auth_repository_impl.dart';
+import 'package:spotsell/src/data/repositories/store_repository.dart';
+import 'package:spotsell/src/data/repositories/store_repository_impl.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/data/services/navigation_service.dart';
 import 'package:spotsell/src/data/services/secure_storage_service.dart';
@@ -144,6 +146,14 @@ class ServiceLocator {
     // Register AuthRepository as singleton
     registerSingleton<AuthRepository>(
       AuthRepositoryImpl(
+        dio: get<Dio>(),
+        secureStorage: get<SecureStorageService>(),
+      ),
+    );
+
+    // Register StoreRepository as singleton
+    registerSingleton<StoreRepository>(
+      StoreRepositoryImpl(
         dio: get<Dio>(),
         secureStorage: get<SecureStorageService>(),
       ),

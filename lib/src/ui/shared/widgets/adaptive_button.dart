@@ -73,8 +73,15 @@ class AdaptiveButton extends StatelessWidget {
           effectivelyEnabled,
           effectiveChild,
         );
-      } else {
+      } else if (Platform.isWindows) {
         button = _buildFluentButton(
+          context,
+          responsive,
+          effectivelyEnabled,
+          effectiveChild,
+        );
+      } else {
+        button = _buildMaterialButton(
           context,
           responsive,
           effectivelyEnabled,

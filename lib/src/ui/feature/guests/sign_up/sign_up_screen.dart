@@ -649,6 +649,20 @@ class _SignUpScreenState extends State<SignUpScreen>
             ),
           ),
         );
+      } else {
+        // Use Material date picker
+        selectedDate = await showDatePicker(
+          context: context,
+          initialDate: eighteenYearsAgo,
+          firstDate: hundredYearsAgo,
+          lastDate: eighteenYearsAgo,
+          helpText: 'Select your date of birth',
+          fieldLabelText: 'Date of Birth',
+        );
+
+        if (selectedDate != null) {
+          _viewModel.setDateOfBirth(selectedDate);
+        }
       }
     } else {
       // Use Material date picker
@@ -767,8 +781,10 @@ class _SignUpScreenState extends State<SignUpScreen>
     if (!kIsWeb) {
       if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
         _showDesktopImagePicker(context);
-      } else {
+      } else if (Platform.isIOS) {
         _showCupertinoImagePicker(context);
+      } else {
+        _showMaterialImagePicker(context);
       }
     } else {
       _showMaterialImagePicker(context);

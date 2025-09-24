@@ -338,9 +338,9 @@ jobs:
       - name: 🚀 Deploy Web to FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
-          server: ${{ vars.GH_DEPLOY_SERVER }}
-          username: ${{ vars.GH_DEPLOY_FTP_USERNAME }}
-          password: ${{ vars.GH_DEPLOY_FTP_PASSWORD }}
+          server: ${{ secrets.DEPLOY_SERVER }}
+          username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
+          password: ${{ secrets.DEPLOY_SERVER_PASSWORD }}
           local-dir: web-artifacts/
           server-dir: /
           protocol: ftp

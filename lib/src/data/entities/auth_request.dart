@@ -92,7 +92,7 @@ class AuthUser {
     this.attachments,
   });
 
-  factory AuthUser.fromJson(Map<String, dynamic> json) {
+  factory AuthUser.fromJson(Map<String, dynamic> json, {String? token}) {
     final data = json['data'];
     late List<Attachment>? attachments;
 
@@ -114,10 +114,10 @@ class AuthUser {
       email: data['email'],
       gender: data['gender'],
       phone: data['phone'],
-      role: data['roles'] != null ? List.from(data['roles']) : null,
+      role: List.from(data['roles']),
       dateOfBirth: DateTime.parse(data['date_of_birth']),
       attachments: attachments,
-      token: json['token'],
+      token: json['token'] ?? token,
       createdAt: DateTime.parse(data['created_at']),
       updatedAt: DateTime.parse(data['updated_at']),
     );

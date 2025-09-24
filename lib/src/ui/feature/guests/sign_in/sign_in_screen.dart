@@ -371,14 +371,14 @@ class _SignInScreenState extends State<SignInScreen>
     ResponsiveBreakpoints responsive, {
     required bool isDesktop,
   }) {
-    final cardWidth = isDesktop ? 400.0 : double.infinity;
+    final cardWidth = isDesktop ? 450.0 : double.infinity;
 
     return SlideTransition(
       position: _slideAnimation,
       child: Container(
         width: cardWidth,
         constraints: BoxConstraints(
-          maxWidth: isDesktop ? 400 : double.infinity,
+          maxWidth: isDesktop ? 450 : double.infinity,
         ),
         decoration: ThemeUtils.getAdaptiveCardDecoration(context),
 

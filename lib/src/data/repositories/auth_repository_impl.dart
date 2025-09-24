@@ -178,12 +178,12 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Result<AuthUser>> getCurrentUser() async {
+  Future<Result<AuthUser>> getCurrentUser(String? token) async {
     try {
       final response = await _dio.get(_getCurrentUserUrlEndpoint);
 
       if (response.statusCode == 200) {
-        final user = AuthUser.fromJson(response.data);
+        final user = AuthUser.fromJson(response.data, token: token);
         return Result.ok(user);
       } else {
         return Result.error(

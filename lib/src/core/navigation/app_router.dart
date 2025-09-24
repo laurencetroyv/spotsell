@@ -6,14 +6,20 @@ import 'package:flutter/material.dart';
 
 import 'package:fluent_ui/fluent_ui.dart' as fl;
 
+import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
-// TODO: Import other screens when created
+import 'package:spotsell/src/data/entities/user_role.dart';
+import 'package:spotsell/src/data/services/auth_service.dart';
+import 'package:spotsell/src/ui/feature/admin/admin_screen.dart';
+import 'package:spotsell/src/ui/feature/buyer/buyer_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/sign_in/sign_in_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/sign_up/sign_up_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/welcome/welcome_screen.dart';
+import 'package:spotsell/src/ui/feature/navigation_guard.dart';
+import 'package:spotsell/src/ui/feature/seller/seller_screen.dart';
 
 /// Central router configuration for the application
-/// Handles platform-aware route generation and navigation transitions
+/// Handles platform-aware route generation, navigation transitions, and authentication guards
 class AppRouter {
   /// Generate routes based on route settings
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
@@ -42,13 +48,131 @@ class AppRouter {
     Object? arguments,
     RouteSettings settings,
   ) {
+    // Handle authentication-protected routes
+    if (RouteNames.requiresAuth(routeName)) {
+      return _createAuthenticatedRoute(routeName, arguments, settings);
+    }
+
     final widget = _getWidgetForRoute(routeName, arguments);
 
     if (widget == null) {
       return _createErrorRoute('Screen not found: $routeName');
     }
 
-    // Create platform-specific route
+    return _createPlatformSpecificRoute(widget, settings);
+  }
+
+  /// Create route for authenticated screens
+  static Route<dynamic> _createAuthenticatedRoute(
+    String routeName,
+    Object? arguments,
+    RouteSettings settings,
+  ) {
+    Widget widget;
+
+    try {
+      final authService = getService<AuthService>();
+
+      // Check if user is authenticated
+      if (!authService.isAuthenticated) {
+        // Redirect to welcome screen if not authenticated
+        widget = const WelcomeScreen();
+      } else {
+        // Get the appropriate widget based on route and user role
+        widget =
+            _getAuthenticatedWidget(routeName, authService) ??
+            _getWidgetForRole(authService.primaryRole);
+      }
+    } catch (e) {
+      // If auth service is not available, redirect to welcome
+      debugPrint('Auth service not available: $e');
+      widget = const WelcomeScreen();
+    }
+
+    return _createPlatformSpecificRoute(widget, settings);
+  }
+
+  /// Get widget for authenticated routes based on route name and user permissions
+  static Widget? _getAuthenticatedWidget(
+    String routeName,
+    AuthService authService,
+  ) {
+    switch (routeName) {
+      case RouteNames.home:
+        // Home route uses AuthGuard to determine appropriate screen
+        return const NavigationGuard();
+
+      case RouteNames.buyer:
+        return const BuyerScreen();
+
+      case RouteNames.seller:
+        // Check if user has seller role
+        if (!authService.isSeller) {
+          return _UnauthorizedScreen(
+            requiredRole: 'Seller',
+            message: 'You need seller permissions to access this area.',
+          );
+        }
+        return const SellerScreen();
+
+      case RouteNames.admin:
+        // Check if user has admin role
+        if (!authService.isAdmin) {
+          return _UnauthorizedScreen(
+            requiredRole: 'Admin',
+            message: 'You need administrator permissions to access this area.',
+          );
+        }
+        return const AdminScreen();
+
+      // TODO: Add other authenticated routes like profile, settings
+      case RouteNames.profile:
+      case RouteNames.settings:
+        return _ComingSoonScreen(routeName: routeName);
+
+      default:
+        return null;
+    }
+  }
+
+  /// Get widget based on user's primary role
+  static Widget _getWidgetForRole(UserRole role) {
+    switch (role) {
+      case UserRole.admin:
+        return const AdminScreen();
+      case UserRole.seller:
+        return const SellerScreen();
+      case UserRole.buyer:
+        return const BuyerScreen();
+    }
+  }
+
+  /// Get the appropriate widget for a route (non-authenticated routes)
+  static Widget? _getWidgetForRoute(String routeName, Object? arguments) {
+    switch (routeName) {
+      case RouteNames.welcome:
+        return const WelcomeScreen();
+
+      case RouteNames.signIn:
+        return const SignInScreen();
+
+      case RouteNames.signUp:
+        return const SignUpScreen();
+
+      case RouteNames.home:
+        // Home route uses AuthGuard to determine appropriate screen
+        return const NavigationGuard();
+
+      default:
+        return null;
+    }
+  }
+
+  /// Create platform-specific route
+  static Route<dynamic> _createPlatformSpecificRoute(
+    Widget widget,
+    RouteSettings settings,
+  ) {
     if (!kIsWeb) {
       if (Platform.isMacOS || Platform.isIOS) {
         return _createCupertinoRoute(widget, settings);
@@ -65,33 +189,6 @@ class AppRouter {
 
     // Default to Material (Android and fallback)
     return _createMaterialRoute(widget, settings);
-  }
-
-  /// Get the appropriate widget for a route
-  static Widget? _getWidgetForRoute(String routeName, Object? arguments) {
-    switch (routeName) {
-      case RouteNames.welcome:
-        return const WelcomeScreen();
-
-      case RouteNames.signIn:
-        return const SignInScreen();
-
-      case RouteNames.signUp:
-        return const SignUpScreen();
-
-      // TODO: Add other routes when screens are created
-      // case AppRoutes.home:
-      //   return const HomeScreen();
-
-      // case AppRoutes.profile:
-      //   return const ProfileScreen();
-
-      // case AppRoutes.settings:
-      //   return const SettingsScreen();
-
-      default:
-        return null;
-    }
   }
 
   /// Create Material Design route (Android)
@@ -135,13 +232,11 @@ class AppRouter {
     Widget widget,
     RouteSettings settings,
   ) {
-    // Yaru uses Material routes but with custom transitions
     return PageRouteBuilder(
       settings: settings,
       pageBuilder: (context, animation, secondaryAnimation) => widget,
       transitionDuration: const Duration(milliseconds: 200),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        // Ubuntu-style slide transition
         const begin = Offset(1.0, 0.0);
         const end = Offset.zero;
         const curve = Curves.easeInOut;
@@ -177,89 +272,8 @@ class AppRouter {
 
   /// Get initial route based on app state
   static String getInitialRoute() {
-    // TODO: Add logic to determine initial route based on:
-    // - Authentication state
-    // - Onboarding completion
-    // - Deep linking
-    // - Platform-specific considerations
-
-    return RouteNames.welcome;
-  }
-
-  /// Navigate to route with platform-aware transition
-  static Future<T?> navigateToRoute<T>(
-    BuildContext context,
-    String routeName, {
-    Object? arguments,
-    bool replace = false,
-    bool clearStack = false,
-  }) async {
-    final navigator = Navigator.of(context);
-
-    if (clearStack) {
-      return navigator.pushNamedAndRemoveUntil(
-        routeName,
-        (route) => false,
-        arguments: arguments,
-      );
-    }
-
-    if (replace) {
-      return navigator.pushReplacementNamed(routeName, arguments: arguments);
-    }
-
-    return navigator.pushNamed(routeName, arguments: arguments);
-  }
-
-  /// Pop to specific route
-  static void popToRoute(BuildContext context, String routeName) {
-    Navigator.of(context).popUntil(ModalRoute.withName(routeName));
-  }
-
-  /// Get route arguments safely
-  static T? getRouteArguments<T>(BuildContext context) {
-    try {
-      return ModalRoute.of(context)?.settings.arguments as T?;
-    } catch (e) {
-      debugPrint('Error getting route arguments: $e');
-      return null;
-    }
-  }
-
-  /// Check if a route can be popped
-  static bool canPop(BuildContext context) {
-    return Navigator.of(context).canPop();
-  }
-
-  /// Get current route name
-  static String? getCurrentRouteName(BuildContext context) {
-    return ModalRoute.of(context)?.settings.name;
-  }
-
-  /// Create custom transition for specific routes
-  static Route<T> createCustomRoute<T>({
-    required Widget child,
-    required RouteSettings settings,
-    Duration? transitionDuration,
-    Widget Function(
-      BuildContext context,
-      Animation<double> animation,
-      Animation<double> secondaryAnimation,
-      Widget child,
-    )?
-    transitionsBuilder,
-  }) {
-    return PageRouteBuilder<T>(
-      settings: settings,
-      pageBuilder: (context, animation, secondaryAnimation) => child,
-      transitionDuration:
-          transitionDuration ?? const Duration(milliseconds: 300),
-      transitionsBuilder:
-          transitionsBuilder ??
-          (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-    );
+    // Always start with AuthGuard which will handle authentication state
+    return RouteNames.home;
   }
 
   /// Route observers for analytics and debugging
@@ -268,7 +282,8 @@ class AppRouter {
   ];
 }
 
-/// Error screen for invalid routes
+/// Helper screens for error states and unauthorized access
+
 class _ErrorScreen extends StatelessWidget {
   final String message;
 
@@ -297,13 +312,10 @@ class _ErrorScreen extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                // Try to go back, or go to welcome if can't
                 if (Navigator.of(context).canPop()) {
                   Navigator.of(context).pop();
                 } else {
-                  Navigator.of(
-                    context,
-                  ).pushReplacementNamed(RouteNames.welcome);
+                  Navigator.of(context).pushReplacementNamed(RouteNames.home);
                 }
               },
               child: const Text('Go Back'),
@@ -315,7 +327,115 @@ class _ErrorScreen extends StatelessWidget {
   }
 }
 
-/// Route observer for logging and analytics
+class _UnauthorizedScreen extends StatelessWidget {
+  final String requiredRole;
+  final String message;
+
+  const _UnauthorizedScreen({
+    required this.requiredRole,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Access Denied'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () =>
+              Navigator.of(context).pushReplacementNamed(RouteNames.home),
+        ),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 64,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Access Restricted',
+                style: Theme.of(context).textTheme.headlineSmall,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                style: Theme.of(context).textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Required role: $requiredRole',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () =>
+                    Navigator.of(context).pushReplacementNamed(RouteNames.home),
+                child: const Text('Go to Dashboard'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ComingSoonScreen extends StatelessWidget {
+  final String routeName;
+
+  const _ComingSoonScreen({required this.routeName});
+
+  @override
+  Widget build(BuildContext context) {
+    final featureName = routeName.replaceAll('/', '').toUpperCase();
+
+    return Scaffold(
+      appBar: AppBar(title: Text(featureName)),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.construction,
+              size: 64,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Coming Soon',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'The $featureName feature is under development.',
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Go Back'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _AppRouteObserver extends NavigatorObserver {
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {

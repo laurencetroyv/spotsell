@@ -12,6 +12,7 @@ class AdaptiveScaffold extends StatelessWidget {
   const AdaptiveScaffold({
     super.key,
     required this.child,
+    this.children,
     this.appBar,
     this.floatingActionButton,
     this.drawer,
@@ -22,9 +23,11 @@ class AdaptiveScaffold extends StatelessWidget {
     this.resizeToAvoidBottomInset,
     this.extendBody = false,
     this.extendBodyBehindAppBar = false,
+    this.signOut,
   });
 
   final Widget child;
+  final List<Widget>? children;
   final PreferredSizeWidget? appBar;
   final Widget? floatingActionButton;
   final Widget? drawer;
@@ -35,6 +38,7 @@ class AdaptiveScaffold extends StatelessWidget {
   final bool? resizeToAvoidBottomInset;
   final bool extendBody;
   final bool extendBodyBehindAppBar;
+  final VoidCallback? signOut;
 
   @override
   Widget build(BuildContext context) {
@@ -155,21 +159,11 @@ class AdaptiveScaffold extends StatelessWidget {
     ResponsiveBreakpoints responsive,
   ) {
     // For Fluent UI, use ScaffoldPage with NavigationView if navigation is needed
-    if (responsive.shouldShowNavigationRail && navigationRail != null) {
+    if (navigationRail != null) {
       return fl.NavigationView(
-        content: fl.ScaffoldPage(
-          content: child,
-          header: appBar != null
-              ? Container(
-                  height: responsive.appBarHeight,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: responsive.horizontalPadding,
-                  ),
-                  child: appBar,
-                )
-              : null,
-          padding: EdgeInsets.zero,
-        ),
+        appBar: responsive.isMobile
+            ? fl.NavigationAppBar(automaticallyImplyLeading: false)
+            : null,
         pane: _buildFluentNavigationPane(context, responsive),
       );
     }
@@ -214,31 +208,46 @@ class AdaptiveScaffold extends StatelessWidget {
   ) {
     // Convert NavigationRail to Fluent NavigationPane
     final rail = navigationRail!;
+    fl.PaneDisplayMode displayMode = fl.PaneDisplayMode.open;
+
+    if (responsive.isDesktop) {
+      displayMode = fl.PaneDisplayMode.open;
+    } else if (responsive.isTablet) {
+      displayMode = fl.PaneDisplayMode.compact;
+    } else {
+      displayMode = fl.PaneDisplayMode.minimal;
+    }
+
+    List<fl.NavigationPaneItem> items = rail.destinations
+        .asMap()
+        .entries
+        .map<fl.NavigationPaneItem>((entry) {
+          final index = entry.key;
+          final destination = entry.value;
+
+          return fl.PaneItem(
+            key: ValueKey(index),
+            icon: destination.icon,
+            title: destination.label,
+            body: children![index],
+          );
+        })
+        .toList();
 
     return fl.NavigationPane(
-      displayMode: responsive.isDesktop
-          ? fl.PaneDisplayMode.open
-          : fl.PaneDisplayMode.compact,
-      items: rail.destinations.asMap().entries.map((entry) {
-        final index = entry.key;
-        final destination = entry.value;
-
-        return fl.PaneItem(
-          key: ValueKey(index),
-          icon: destination.icon,
-          title: Text(destination.label.toString()),
-          body: const SizedBox.shrink(),
-        );
-      }).toList(),
+      displayMode: displayMode,
+      selected: rail.selectedIndex,
+      onChanged: rail.onDestinationSelected,
+      items: items,
       footerItems: rail.trailing != null
-          ? [
-              fl.PaneItem(
-                icon: const Icon(fl.FluentIcons.settings),
-                title: const Text('Settings'),
-                body: const SizedBox.shrink(),
+          ? <fl.NavigationPaneItem>[
+              fl.PaneItemAction(
+                icon: const Icon(fl.FluentIcons.sign_out),
+                onTap: signOut!,
+                title: Text('Sign Out'),
               ),
             ]
-          : [],
+          : <fl.NavigationPaneItem>[],
     );
   }
 

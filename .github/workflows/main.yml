@@ -1,8 +1,9 @@
 name: 🛠 Multi-Platform CI / Build & Release
 
 on:
-  push:
-    tags: ['v*.*.*']
+  pull_request:
+    types: [closed]
+    branches: [main]
 
 permissions:
   contents: write
@@ -13,13 +14,93 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Only run if PR was merged
+  check_merged:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.merged }}
+      tag_name: ${{ steps.tag.outputs.tag_name }}
+      pr_title: ${{ steps.pr_info.outputs.title }}
+      pr_description: ${{ steps.pr_info.outputs.description }}
+      commit_messages: ${{ steps.commits.outputs.messages }}
+    steps:
+      - name: ✅ Check if PR was merged
+        id: check
+        run: echo "merged=true" >> $GITHUB_OUTPUT
+
+      - name: 📂 Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: 📝 Extract PR information
+        id: pr_info
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_DESCRIPTION="${{ github.event.pull_request.body }}"
+
+          echo "title=$PR_TITLE" >> $GITHUB_OUTPUT
+          echo "description<<EOF" >> $GITHUB_OUTPUT
+          echo "$PR_DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 🏷️ Generate tag name from PR title
+        id: tag
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+
+          # Extract version from PR title (looks for patterns like v1.2.3, 1.2.3, etc.)
+          if [[ "$PR_TITLE" =~ [vV]?([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            TAG_NAME="v$VERSION"
+          else
+            # Fallback: use current date and PR number
+            DATE=$(date +%Y.%m.%d)
+            TAG_NAME="v$DATE-pr${{ github.event.pull_request.number }}"
+          fi
+
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
+      - name: 📜 Get commit messages since last tag
+        id: commits
+        run: |
+          # Get the last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          if [ -n "$LAST_TAG" ]; then
+            # Get commits since last tag
+            COMMITS=$(git log --pretty=format:"• %s (%h)" "$LAST_TAG"..HEAD)
+          else
+            # If no previous tags, get all commits in PR
+            COMMITS=$(git log --pretty=format:"• %s (%h)" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          fi
+
+          echo "messages<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 🏷️ Create tag
+        run: |
+          TAG_NAME="${{ steps.tag.outputs.tag_name }}"
+          COMMIT_MESSAGES="${{ steps.commits.outputs.messages }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create annotated tag with commit messages as description
+          git tag -a "$TAG_NAME" -m "Release $TAG_NAME" -m "" -m "$COMMIT_MESSAGES"
+          git push origin "$TAG_NAME"
+
   build_android:
+    needs: check_merged
+    if: needs.check_merged.outputs.should_run == 'true'
     runs-on: ubuntu-latest
 
     steps:
       - name: 📂 Checkout code
         uses: actions/checkout@v5
-      
+
       - name: 🚀 Cache pub deps
         uses: actions/cache@v4
         with:
@@ -31,19 +112,19 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
 
       - name: 🦋 Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-      
+
       - name: 📥 Get dependencies
         run: flutter pub get
-      
+
       - name: 🔧 Create environment file
         run: echo "API=${{ secrets.API_KEY }}" > .env
-      
+
       - name: 🏗️ Generate environment configuration
         run: dart run build_runner build
 
@@ -54,7 +135,7 @@ jobs:
         run: |
           mkdir -p artifacts/android
           cp build/app/outputs/flutter-apk/*.apk artifacts/android/
-      
+
       - name: ⬆️ Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -62,30 +143,32 @@ jobs:
           path: artifacts/android/
 
   build_web:
+    needs: check_merged
+    if: needs.check_merged.outputs.should_run == 'true'
     runs-on: ubuntu-latest
 
     steps:
       - name: 📂 Checkout code
         uses: actions/checkout@v5
-      
+
       - name: 🚀 Cache pub deps
         uses: actions/cache@v4
         with:
           path: ~/.pub-cache
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yml')  }}
           restore-keys: ${{ runner.os }}-pub-
-      
+
       - name: 🦋 Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-      
+
       - name: 📥 Get dependencies
         run: flutter pub get
-      
+
       - name: 🔧 Create environment file
         run: echo "API=${{ secrets.API_KEY }}" > .env
-      
+
       - name: 🏗️ Generate environment configuration
         run: dart run build_runner build
 
@@ -96,7 +179,7 @@ jobs:
         run: |
           mkdir -p artifacts/web
           cd build/web && tar -czf ../../artifacts/web/spotsell-web.tar.gz *
-      
+
       - name: ⬆️ Upload Web artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -104,12 +187,14 @@ jobs:
           path: artifacts/web/
 
   build_ios:
+    needs: check_merged
+    if: needs.check_merged.outputs.should_run == 'true'
     runs-on: macos-latest
 
     steps:
       - name: 📂 Checkout code
         uses: actions/checkout@v5
-      
+
       - name: 🚀 Cache pub deps
         uses: actions/cache@v4
         with:
@@ -121,13 +206,13 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-      
+
       - name: 📥 Get dependencies
         run: flutter pub get
-      
+
       - name: 🔧 Create environment file
         run: echo "API=${{ secrets.API_KEY }}" > .env
-      
+
       - name: 🏗️ Generate environment configuration
         run: dart run build_runner build
 
@@ -138,7 +223,7 @@ jobs:
         run: |
           mkdir -p artifacts/ios
           cd build/ios/iphoneos && tar -czf ../../../artifacts/ios/spotsell-ios.tar.gz Runner.app
-      
+
       - name: ⬆️ Upload iOS artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -146,12 +231,14 @@ jobs:
           path: artifacts/ios/
 
   build_macos:
+    needs: check_merged
+    if: needs.check_merged.outputs.should_run == 'true'
     runs-on: macos-latest
 
     steps:
       - name: 📂 Checkout code
         uses: actions/checkout@v5
-      
+
       - name: 🚀 Cache pub deps
         uses: actions/cache@v4
         with:
@@ -163,13 +250,13 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-      
+
       - name: 📥 Get dependencies
         run: flutter pub get
-      
+
       - name: 🔧 Create environment file
         run: echo "API=${{ secrets.API_KEY }}" > .env
-      
+
       - name: 🏗️ Generate environment configuration
         run: dart run build_runner build
 
@@ -180,7 +267,7 @@ jobs:
         run: |
           mkdir -p artifacts/macos
           cd build/macos/Build/Products/Release && tar -czf ../../../../../artifacts/macos/spotsell-macos.tar.gz spotsell.app
-      
+
       - name: ⬆️ Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -188,12 +275,14 @@ jobs:
           path: artifacts/macos/
 
   build_windows:
+    needs: check_merged
+    if: needs.check_merged.outputs.should_run == 'true'
     runs-on: windows-latest
 
     steps:
       - name: 📂 Checkout code
         uses: actions/checkout@v5
-      
+
       - name: 🚀 Cache pub deps
         uses: actions/cache@v4
         with:
@@ -205,13 +294,13 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-      
+
       - name: 📥 Get dependencies
         run: flutter pub get
-      
+
       - name: 🔧 Create environment file
         run: echo "API=${{ secrets.API_KEY }}" > .env
-      
+
       - name: 🏗️ Generate environment configuration
         run: dart run build_runner build
 
@@ -222,17 +311,45 @@ jobs:
         run: |
           mkdir artifacts\windows
           powershell Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "artifacts\windows\spotsell-windows.zip"
-      
+
       - name: ⬆️ Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-artifacts
           path: artifacts/windows/
-      
+
+  web_publish:
+    runs-on: ubuntu-latest
+    needs: [check_merged, build_web]
+
+    steps:
+      - name: 📥 Download Web artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: web-artifacts
+          path: web-artifacts/
+
+      - name: 📦 Extract Web artifacts
+        run: |
+          cd web-artifacts
+          tar -xzf spotsell-web.tar.gz
+          rm spotsell-web.tar.gz
+
+      - name: 🚀 Deploy Web to FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
+          server: ${{ vars.GH_DEPLOY_SERVER }}
+          username: ${{ vars.GH_DEPLOY_FTP_USERNAME }}
+          password: ${{ vars.GH_DEPLOY_FTP_PASSWORD }}
+          local-dir: web-artifacts/
+          server-dir: /
+          protocol: ftp
+          port: 21
+
   publish:
     runs-on: ubuntu-latest
-    needs: [build_android, build_web, build_ios, build_macos, build_windows]
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs:
+      [ check_merged, build_android, build_ios, build_macos, build_windows ]
 
     steps:
       - name: 📥 Download Android artifacts
@@ -240,51 +357,48 @@ jobs:
         with:
           name: android-artifacts
           path: release-artifacts/
-      
-      - name: 📥 Download Web artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: web-artifacts
-          path: release-artifacts/
-      
+
       - name: 📥 Download iOS artifacts
         uses: actions/download-artifact@v4
         with:
           name: ios-artifacts
           path: release-artifacts/
-      
+
       - name: 📥 Download macOS artifacts
         uses: actions/download-artifact@v4
         with:
           name: macos-artifacts
           path: release-artifacts/
-      
+
       - name: 📥 Download Windows artifacts
         uses: actions/download-artifact@v4
         with:
           name: windows-artifacts
           path: release-artifacts/
 
-      - name: 🏷️ Create or update Release
+      - name: 🏷️ Create Release
         uses: ncipollo/release-action@v1.20.0
         with:
-          tag: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          tag: ${{ needs.check_merged.outputs.tag_name }}
+          name: ${{ needs.check_merged.outputs.pr_title }}
           artifacts: "release-artifacts/**/*"
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
-            ## 🚀 Release ${{ github.ref_name }}
-            
+            ## 🚀 ${{ needs.check_merged.outputs.pr_title }}
+
+            ${{ needs.check_merged.outputs.pr_description }}
+
+            ### 📝 Changes in this release:
+            ${{ needs.check_merged.outputs.commit_messages }}
+
             ### 📱 Available Downloads:
             - **Android APKs**: Ready for sideloading
             - **iOS App**: Unsigned build (requires signing)
             - **macOS App**: Desktop application for macOS
             - **Windows**: Desktop application for Windows
-            - **Web**: Compressed web build
-            
+
             ### 🔧 Installation Instructions:
             - **Android**: Download and install the APK file
             - **iOS**: Requires code signing before installation
             - **macOS**: Extract tar.gz and run the .app bundle
             - **Windows**: Extract ZIP and run the executable
-            - **Web**: Extract and serve files on a web server

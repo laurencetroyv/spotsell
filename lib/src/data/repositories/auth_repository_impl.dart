@@ -205,6 +205,8 @@ class AuthRepositoryImpl implements AuthRepository {
     String? firstName,
     String? lastName,
     String? username,
+    String? email,
+    String? phone,
     DateTime? dateOfBirth,
     String? gender,
     File? profilePicture,
@@ -214,13 +216,15 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Prepare form data
       final data = <String, dynamic>{};
-      if (firstName != null) data['firstName'] = firstName;
-      if (lastName != null) data['lastName'] = lastName;
+      if (firstName != null) data['first_name'] = firstName;
+      if (lastName != null) data['last_name'] = lastName;
       if (username != null) data['username'] = username;
       if (dateOfBirth != null) {
-        data['dateOfBirth'] = dateOfBirth.toIso8601String();
+        data['date_of_birth'] = dateOfBirth.toIso8601String();
       }
       if (gender != null) data['gender'] = gender;
+      if (gender != null) data['phone'] = phone;
+      if (gender != null) data['email'] = email;
 
       FormData formData;
       if (profilePicture != null) {
@@ -231,7 +235,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       formData = FormData.fromMap(data);
 
-      final response = await _dio.put(
+      final response = await _dio.patch(
         _updateProfileUrlEndpoint,
         data: formData,
         options: Options(headers: {'Content-Type': 'multipart/form-data'}),

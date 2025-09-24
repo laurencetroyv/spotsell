@@ -21,6 +21,8 @@ abstract class AuthRepository {
     String? firstName,
     String? lastName,
     String? username,
+    String? email,
+    String? phone,
     DateTime? dateOfBirth,
     String? gender,
     File? profilePicture,

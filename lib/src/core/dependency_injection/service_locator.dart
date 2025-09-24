@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 
 import 'package:spotsell/src/data/repositories/auth_repository.dart';
 import 'package:spotsell/src/data/repositories/auth_repository_impl.dart';
+import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/data/services/navigation_service.dart';
 import 'package:spotsell/src/data/services/secure_storage_service.dart';
 import 'package:spotsell/src/ui/services/cupertino_navigation_service.dart';
@@ -51,6 +52,9 @@ class ServiceLocator {
 
       // Register repositories
       await _registerRepositories();
+
+      // Register authentication service
+      await _registerAuthService();
 
       // Register use cases (when created)
       await _registerUseCases();
@@ -146,6 +150,28 @@ class ServiceLocator {
     );
 
     debugPrint('Repositories registered');
+  }
+
+  /// Register authentication service
+  Future<void> _registerAuthService() async {
+    // Register AuthService as singleton
+    final authService = AuthService(
+      authRepository: get<AuthRepository>(),
+      secureStorage: get<SecureStorageService>(),
+    );
+
+    registerSingleton<AuthService>(authService);
+
+    // Initialize auth service during app startup
+    try {
+      await authService.initialize();
+      debugPrint('AuthService initialized successfully');
+    } catch (e) {
+      debugPrint('Warning: AuthService initialization failed: $e');
+      // Don't rethrow - allow app to continue with unauthenticated state
+    }
+
+    debugPrint('Authentication service registered');
   }
 
   /// Register use cases (placeholder for future implementation)
@@ -272,7 +298,7 @@ class ServiceLocator {
       'singletons': _singletons.keys.map((k) => k.toString()).toList(),
       'services': _services.keys.map((k) => k.toString()).toList(),
       'factories': _factories.keys.map((k) => k.toString()).toList(),
-      'platform': Platform.operatingSystem,
+      'platform': kIsWeb ? 'web' : Platform.operatingSystem,
     };
   }
 }

@@ -4,22 +4,22 @@ import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/auth_request.dart';
-import 'package:spotsell/src/data/repositories/auth_repository.dart';
+import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 
 class SignInViewModel extends BaseViewModel {
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
 
-  late final AuthRepository _authRepository;
+  late final AuthService _authService;
 
   @override
   void initialize() {
     super.initialize();
     try {
-      _authRepository = getService<AuthRepository>();
+      _authService = getService<AuthService>();
     } catch (e) {
-      debugPrint('Warning: AuthRepository not available in ServiceLocator: $e');
+      debugPrint('Warning: AuthService not available in ServiceLocator: $e');
       setError('Authentication service unavailable. Please restart the app.');
     }
   }
@@ -37,9 +37,11 @@ class SignInViewModel extends BaseViewModel {
 
     await executeAsyncResult<AuthUser>(
       () => _performSignIn(),
-      onSuccess: (response) {
-        showSuccessMessage('Welcome back. ${response.username}');
-        _navigateToHome();
+      onSuccess: (user) {
+        showSuccessMessage('Welcome back, ${user.username}!');
+        // AuthService will automatically notify NavigationGuard
+        // NavigationGuard will handle the navigation automatically
+        _navigateToUserDashboard();
       },
     );
   }
@@ -114,7 +116,7 @@ class SignInViewModel extends BaseViewModel {
     return RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email);
   }
 
-  /// Perform the actual sign in process
+  /// Perform the actual sign in process using AuthService
   Future<Result<AuthUser>> _performSignIn() async {
     try {
       final request = SignInRequest(
@@ -122,23 +124,40 @@ class SignInViewModel extends BaseViewModel {
         password: password.text.trim(),
       );
 
-      return await _authRepository.signIn(request);
+      // Use AuthService which will handle AuthRepository internally
+      return await _authService.signIn(request);
     } catch (e) {
       return Result.error(Exception('Sign in failed: $e'));
     }
   }
 
-  /// Navigate to home screen after successful sign in
-  void _navigateToHome() {
-    // TODO: Update this when home route is implemented
-    // For now, just show success message
-    showSuccessMessage('Sign in successful! Home screen coming soon.');
+  /// Navigate to user's appropriate dashboard based on their role
+  void _navigateToUserDashboard() {
+    try {
+      // Get the route for the user's primary role
+      final route = RouteNames.getRouteForRole(_authService.primaryRole);
 
-    // Uncomment when home route is available:
-    // navigateToAndClearStack(
-    //   RouteNames.home,
-    //   errorMessage: 'Unable to navigate to home screen',
-    // );
+      // Navigate and clear the entire stack
+      navigateToAndClearStack(
+        route,
+        errorMessage: 'Unable to navigate to dashboard',
+      ).then((success) {
+        if (!success) {
+          // Fallback to home route which will use NavigationGuard
+          navigateToAndClearStack(
+            RouteNames.home,
+            errorMessage: 'Unable to navigate to home screen',
+          );
+        }
+      });
+    } catch (e) {
+      debugPrint('Error determining user dashboard: $e');
+      // Fallback to home route
+      navigateToAndClearStack(
+        RouteNames.home,
+        errorMessage: 'Unable to navigate to home screen',
+      );
+    }
   }
 
   /// Clear form data

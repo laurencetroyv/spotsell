@@ -14,7 +14,7 @@ abstract class AuthRepository {
   Future<Result<void>> signOut();
 
   /// Get current user profile
-  Future<Result<AuthUser>> getCurrentUser();
+  Future<Result<AuthUser>> getCurrentUser(String? token);
 
   /// Update user profile
   Future<Result<AuthUser>> updateProfile(

@@ -9,7 +9,7 @@ import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/auth_request.dart';
-import 'package:spotsell/src/data/repositories/auth_repository.dart';
+import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 
 /// ViewModel for the Sign Up Screen
@@ -46,15 +46,15 @@ class SignUpViewModel extends BaseViewModel {
   /// Get the selected date of birth
   DateTime? get selectedDateOfBirth => _selectedDateOfBirth;
 
-  late final AuthRepository _authRepository;
+  late final AuthService _authService;
 
   @override
   void initialize() {
     super.initialize();
     try {
-      _authRepository = getService<AuthRepository>();
+      _authService = getService<AuthService>();
     } catch (e) {
-      debugPrint('Warning: AuthRepository not available in ServiceLocator: $e');
+      debugPrint('Warning: AuthService not available in ServiceLocator: $e');
       setError('Authentication service unavailable. Please restart the app.');
     }
   }
@@ -66,6 +66,7 @@ class SignUpViewModel extends BaseViewModel {
     usernameController.dispose();
     dateOfBirthController.dispose();
     emailController.dispose();
+    phoneController.dispose();
     passwordController.dispose();
     passwordConfirmationController.dispose();
     super.dispose();
@@ -84,10 +85,12 @@ class SignUpViewModel extends BaseViewModel {
 
     await executeAsyncResult<AuthUser>(
       () => _performSignUp(),
-      onSuccess: (response) {
-        showSuccessMessage('Welcome to SpotSell, ${response.username}!');
+      onSuccess: (user) {
+        showSuccessMessage('Welcome to SpotSell, ${user.username}!');
         clearForm();
-        _navigateToHome();
+        // AuthService will automatically notify NavigationGuard
+        // NavigationGuard will handle the navigation automatically
+        _navigateToUserDashboard();
       },
     );
   }
@@ -131,8 +134,10 @@ class SignUpViewModel extends BaseViewModel {
       return false;
     }
 
+    // Phone validation
     if (phone.trim().length < 11) {
       showErrorMessage('Phone number must be at least 11 characters long');
+      return false;
     }
 
     // Username validation
@@ -257,7 +262,7 @@ class SignUpViewModel extends BaseViewModel {
     return null; // Password is valid
   }
 
-  /// Perform the actual sign up process
+  /// Perform the actual sign up process using AuthService
   Future<Result<AuthUser>> _performSignUp() async {
     try {
       final request = SignUpRequest(
@@ -275,31 +280,40 @@ class SignUpViewModel extends BaseViewModel {
             : null,
       );
 
-      return await _authRepository.signUp(request);
+      // Use AuthService which will handle AuthRepository internally
+      return await _authService.signUp(request);
     } catch (e) {
       return Result.error(Exception('Account creation failed: $e'));
     }
   }
 
-  /// Navigate to home screen after successful sign up
-  void _navigateToHome() {
-    // TODO: Update this when home route is implemented
-    // For now, just show success message and navigate to sign in
-    showSuccessMessage('Account created! Please sign in to continue.');
+  /// Navigate to user's appropriate dashboard based on their role
+  void _navigateToUserDashboard() {
+    try {
+      // Get the route for the user's primary role
+      final route = RouteNames.getRouteForRole(_authService.primaryRole);
 
-    // Navigate to sign in screen
-    Future.delayed(const Duration(seconds: 2), () {
-      navigateToReplacement(
-        RouteNames.signIn,
-        errorMessage: 'Unable to navigate to sign in screen',
+      // Navigate and clear the entire stack
+      navigateToAndClearStack(
+        route,
+        errorMessage: 'Unable to navigate to dashboard',
+      ).then((success) {
+        if (!success) {
+          // Fallback to home route which will use NavigationGuard
+          navigateToAndClearStack(
+            RouteNames.home,
+            errorMessage: 'Unable to navigate to home screen',
+          );
+        }
+      });
+    } catch (e) {
+      debugPrint('Error determining user dashboard: $e');
+      // Fallback to home route
+      navigateToAndClearStack(
+        RouteNames.home,
+        errorMessage: 'Unable to navigate to home screen',
       );
-    });
-
-    // Uncomment when home route is available:
-    // navigateToAndClearStack(
-    //   RouteNames.home,
-    //   errorMessage: 'Unable to navigate to home screen',
-    // );
+    }
   }
 
   /// Clear all form data
@@ -309,6 +323,7 @@ class SignUpViewModel extends BaseViewModel {
     usernameController.clear();
     dateOfBirthController.clear();
     emailController.clear();
+    phoneController.clear();
     passwordController.clear();
     passwordConfirmationController.clear();
     gender = null;
@@ -497,17 +512,6 @@ class SignUpViewModel extends BaseViewModel {
     profilePicture = null;
     safeNotifyListeners();
     showInfoMessage('Profile picture removed');
-  }
-
-  /// Validate image file (optional additional validation)
-  bool _isValidImageFile(File file) {
-    final extension = file.path.toLowerCase();
-    return extension.endsWith('.jpg') ||
-        extension.endsWith('.jpeg') ||
-        extension.endsWith('.png') ||
-        extension.endsWith('.gif') ||
-        extension.endsWith('.bmp') ||
-        extension.endsWith('.webp');
   }
 
   /// Get image file size in MB

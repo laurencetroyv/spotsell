@@ -43,7 +43,6 @@ class SignUpRequest {
     'gender': gender,
     'date_of_birth': dateOfBirth.toIso8601String(),
     'phone': phone,
-    // TODO: Add Attachments
   };
 }
 
@@ -73,6 +72,7 @@ class Attachment {
 class AuthUser {
   final int id;
   final String firstName, lastName, username, email, gender, token, phone;
+  final List<String>? role;
   final DateTime dateOfBirth, createdAt, updatedAt;
   final List<Attachment>? attachments;
 
@@ -84,6 +84,7 @@ class AuthUser {
     required this.email,
     required this.gender,
     required this.phone,
+    this.role,
     required this.dateOfBirth,
     required this.token,
     required this.createdAt,
@@ -95,7 +96,9 @@ class AuthUser {
     final data = json['data'];
     late List<Attachment>? attachments;
 
-    if (data['attachments'] != null) {
+    final hasAttachments = data['attachments'] != null;
+
+    if (hasAttachments) {
       final tmp = List.from(data['attachments']);
 
       attachments = tmp.map((e) => Attachment.fromJson(e)).toList();
@@ -111,9 +114,10 @@ class AuthUser {
       email: data['email'],
       gender: data['gender'],
       phone: data['phone'],
+      role: data['roles'] != null ? List.from(data['roles']) : null,
       dateOfBirth: DateTime.parse(data['date_of_birth']),
       attachments: attachments,
-      token: data['token'],
+      token: json['token'],
       createdAt: DateTime.parse(data['created_at']),
       updatedAt: DateTime.parse(data['updated_at']),
     );

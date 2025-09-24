@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:logger/web.dart';
 
-import 'package:spotsell/src/core/utils/constants.dart';
+import 'package:spotsell/src/core/utils/env.dart';
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/auth_request.dart';
 import 'package:spotsell/src/data/repositories/auth_repository.dart';
@@ -31,7 +31,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   void _setupDioInterceptors() {
-    _dio.options.baseUrl = Constants.baseUrl;
+    _dio.options.baseUrl = Env.API;
     // Request interceptor to add auth token
     _dio.interceptors.add(
       InterceptorsWrapper(

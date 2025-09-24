@@ -345,6 +345,7 @@ jobs:
           server-dir: /
           protocol: ftp
           port: 21
+          dangerous-clean-slate: true
 
   publish:
     runs-on: ubuntu-latest

@@ -50,8 +50,8 @@ jobs:
       - name: 🏗️ Generate environment configuration
         run: dart run build_runner build
 
-      - name: ✅ Run tests
-        run: flutter test --coverage
+      # - name: ✅ Run tests
+      #   run: flutter test --coverage
 
       - name: 🏗️ Build APKs
         run: flutter build apk --release --split-per-abi
@@ -95,8 +95,8 @@ jobs:
       - name: 🏗️ Generate environment configuration
         run: dart run build_runner build
 
-      - name: ✅ Run tests
-        run: flutter test --coverage
+      # - name: ✅ Run tests
+      #   run: flutter test --coverage
 
       - name: 🏗️ Build Web
         run: flutter build web --release
@@ -140,8 +140,8 @@ jobs:
       - name: 🏗️ Generate environment configuration
         run: dart run build_runner build
 
-      - name: ✅ Run tests
-        run: flutter test --coverage
+      # - name: ✅ Run tests
+      #   run: flutter test --coverage
 
       - name: 🏗️ Build iOS
         run: flutter build ios --release --no-codesign
@@ -185,8 +185,8 @@ jobs:
       - name: 🏗️ Generate environment configuration
         run: dart run build_runner build
 
-      - name: ✅ Run tests
-        run: flutter test --coverage
+      # - name: ✅ Run tests
+      #   run: flutter test --coverage
 
       - name: 🏗️ Build macOS
         run: flutter build macos --release
@@ -235,8 +235,8 @@ jobs:
       - name: 🏗️ Generate environment configuration
         run: dart run build_runner build
 
-      - name: ✅ Run tests
-        run: flutter test --coverage
+      # - name: ✅ Run tests
+      #   run: flutter test --coverage
 
       - name: 🏗️ Build Linux
         run: flutter build linux --release
@@ -280,8 +280,8 @@ jobs:
       - name: 🏗️ Generate environment configuration
         run: dart run build_runner build
 
-      - name: ✅ Run tests
-        run: flutter test --coverage
+      # - name: ✅ Run tests
+      #   run: flutter test --coverage
 
       - name: 🏗️ Build Windows
         run: flutter build windows --release

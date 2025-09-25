@@ -3,16 +3,18 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:logger/web.dart';
 
+import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/utils/env.dart';
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/auth_request.dart';
 import 'package:spotsell/src/data/repositories/auth_repository.dart';
+import 'package:spotsell/src/data/services/logger_service.dart';
 import 'package:spotsell/src/data/services/secure_storage_service.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final Dio _dio;
   final SecureStorageService _secureStorage;
-  final Logger _logger = Logger();
+  final Logger _logger = Logger(output: getService<LoggerService>());
 
   /// API Endpouints
   static const String _signInUrlEndpoint = '/log-in';

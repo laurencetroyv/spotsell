@@ -4,12 +4,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:dio/dio.dart';
+import 'package:logger/logger.dart';
 
 import 'package:spotsell/src/data/repositories/auth_repository.dart';
 import 'package:spotsell/src/data/repositories/auth_repository_impl.dart';
 import 'package:spotsell/src/data/repositories/store_repository.dart';
 import 'package:spotsell/src/data/repositories/store_repository_impl.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
+import 'package:spotsell/src/data/services/logger_service.dart';
 import 'package:spotsell/src/data/services/navigation_service.dart';
 import 'package:spotsell/src/data/services/secure_storage_service.dart';
 import 'package:spotsell/src/ui/services/cupertino_navigation_service.dart';
@@ -29,6 +31,7 @@ class ServiceLocator {
   final Map<Type, dynamic Function()> _factories = {};
 
   bool _isInitialized = false;
+  Logger? _logger;
 
   bool get isInitialized => _isInitialized;
 
@@ -46,6 +49,12 @@ class ServiceLocator {
       // Register core services
       await _registerCoreServices();
 
+      // Initialize logger after LoggerService is registered
+      if (!kIsWeb && isRegistered<LoggerService>()) {
+        _logger = Logger(output: get<LoggerService>());
+        _logger!.i('Logger initialized');
+      }
+
       // Register HTTP client
       await _registerHttpClient();
 
@@ -62,7 +71,11 @@ class ServiceLocator {
       await _registerUseCases();
 
       _isInitialized = true;
-      debugPrint('ServiceLocator initialized successfully');
+      if (_logger != null) {
+        _logger!.i('ServiceLocator initialized successfully');
+      } else {
+        debugPrint('ServiceLocator initialized successfully');
+      }
     } catch (e) {
       debugPrint('Failed to initialize ServiceLocator: $e');
       rethrow;
@@ -73,6 +86,14 @@ class ServiceLocator {
   Future<void> _registerCoreServices() async {
     // Register SecureStorageService as singleton
     registerSingleton<SecureStorageService>(SecureStorageService());
+
+    // Register LoggerService as singleton for desktop platforms only
+    if (!kIsWeb) {
+      final loggerService = LoggerService();
+      await loggerService.initialize();
+      registerSingleton<LoggerService>(loggerService);
+      debugPrint('LoggerService registered for desktop platform');
+    }
 
     debugPrint('Core services registered');
   }
@@ -95,13 +116,19 @@ class ServiceLocator {
           requestHeader: true,
           responseHeader: false,
           error: true,
-          logPrint: (obj) => debugPrint(obj.toString()),
+          logPrint: (obj) => _logger != null
+              ? _logger?.i(obj.toString())
+              : debugPrint(obj.toString()),
         ),
       );
     }
 
     registerSingleton<Dio>(dio);
-    debugPrint('HTTP client (Dio) registered');
+    if (_logger != null) {
+      _logger!.i('HTTP client (Dio) registered');
+    } else {
+      debugPrint('HTTP client (Dio) registered');
+    }
   }
 
   /// Register platform-specific services
@@ -113,9 +140,15 @@ class ServiceLocator {
     registerSingleton<NavigationService>(navigationService);
 
     if (!kIsWeb) {
-      debugPrint(
-        'Platform services registered for ${Platform.operatingSystem}',
-      );
+      if (_logger != null) {
+        _logger!.i(
+          'Platform services registered for ${Platform.operatingSystem}',
+        );
+      } else {
+        debugPrint(
+          'Platform services registered for ${Platform.operatingSystem}',
+        );
+      }
     }
   }
 
@@ -159,7 +192,11 @@ class ServiceLocator {
       ),
     );
 
-    debugPrint('Repositories registered');
+    if (_logger != null) {
+      _logger!.i('Repositories registered');
+    } else {
+      debugPrint('Repositories registered');
+    }
   }
 
   /// Register authentication service
@@ -175,13 +212,25 @@ class ServiceLocator {
     // Initialize auth service during app startup
     try {
       await authService.initialize();
-      debugPrint('AuthService initialized successfully');
+      if (_logger != null) {
+        _logger!.i('AuthService initialized successfully');
+      } else {
+        debugPrint('AuthService initialized successfully');
+      }
     } catch (e) {
-      debugPrint('Warning: AuthService initialization failed: $e');
+      if (_logger != null) {
+        _logger!.w('Warning: AuthService initialization failed: $e');
+      } else {
+        debugPrint('Warning: AuthService initialization failed: $e');
+      }
       // Don't rethrow - allow app to continue with unauthenticated state
     }
 
-    debugPrint('Authentication service registered');
+    if (_logger != null) {
+      _logger!.i('Authentication service registered');
+    } else {
+      debugPrint('Authentication service registered');
+    }
   }
 
   /// Register use cases (placeholder for future implementation)
@@ -192,7 +241,11 @@ class ServiceLocator {
     //   authRepository: get<AuthRepository>(),
     // ));
 
-    debugPrint('Use cases registered');
+    if (_logger != null) {
+      _logger!.i('Use cases registered');
+    } else {
+      debugPrint('Use cases registered');
+    }
   }
 
   /// Register a singleton instance
@@ -278,6 +331,7 @@ class ServiceLocator {
     _services.clear();
     _factories.clear();
     _isInitialized = false;
+    _logger = null;
     debugPrint('ServiceLocator reset');
   }
 

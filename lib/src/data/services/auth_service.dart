@@ -4,10 +4,12 @@ import 'package:flutter/foundation.dart';
 
 import 'package:logger/web.dart';
 
+import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/auth_request.dart';
 import 'package:spotsell/src/data/entities/user_role.dart';
 import 'package:spotsell/src/data/repositories/auth_repository.dart';
+import 'package:spotsell/src/data/services/logger_service.dart';
 import 'package:spotsell/src/data/services/secure_storage_service.dart';
 
 /// Service responsible for managing user authentication state and session
@@ -15,7 +17,8 @@ import 'package:spotsell/src/data/services/secure_storage_service.dart';
 class AuthService extends ChangeNotifier {
   final AuthRepository _authRepository;
   final SecureStorageService _secureStorage;
-  final Logger _logger = Logger();
+
+  final Logger _logger = Logger(output: getService<LoggerService>());
 
   AuthUser? _currentUser;
   bool _isInitialized = false;

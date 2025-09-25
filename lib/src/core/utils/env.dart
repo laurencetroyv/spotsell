@@ -11,4 +11,7 @@ abstract class Env {
 
   @EnviedField(varName: 'SENTRY_DNS', obfuscate: true)
   static final String SENTRY_DNS = _Env.SENTRY_DNS;
+
+  @EnviedField(varName: 'ENVIRONMENT', obfuscate: true)
+  static final String ENVIRONMENT = _Env.ENVIRONMENT;
 }

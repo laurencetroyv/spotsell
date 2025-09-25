@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:yaru/yaru.dart';
 
@@ -20,7 +21,12 @@ Future<void> main() async {
   }
 
   usePathUrlStrategy();
+
+  final platform = await PackageInfo.fromPlatform();
+
   await SentryFlutter.init((options) {
+    options.release = platform.version;
+    options.environment = Env.ENVIRONMENT;
     options.dsn = Env.SENTRY_DNS;
     // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
     // We recommend adjusting this value in production.
@@ -29,6 +35,4 @@ Future<void> main() async {
     // Setting to 1.0 will profile 100% of sampled transactions:
     options.profilesSampleRate = 1.0;
   }, appRunner: () => runApp(SentryWidget(child: const App())));
-  // TODO: Remove this line after sending the first sample event to sentry.
-  await Sentry.captureException(Exception('This is a sample exception.'));
 }

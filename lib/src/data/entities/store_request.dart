@@ -3,6 +3,7 @@ import 'package:spotsell/src/data/entities/auth_request.dart';
 class Store {
   final int id;
   final String name;
+  final String? slug;
   final String? description;
   final String? phone;
   final String? email;
@@ -13,6 +14,7 @@ class Store {
   const Store({
     required this.id,
     required this.name,
+    this.slug,
     this.description,
     this.phone,
     this.email,
@@ -25,10 +27,13 @@ class Store {
     return Store(
       id: json['id'],
       name: json['name'],
+      slug: json['slug'],
       description: json['description'],
       phone: json['phone'],
       email: json['email'],
-      seller: AuthUser.fromJson(json['seller'], token: ''),
+      seller: json['seller'] != null
+          ? AuthUser.fromJson(json['seller'], token: '')
+          : null,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );

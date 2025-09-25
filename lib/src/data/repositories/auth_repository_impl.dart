@@ -14,7 +14,11 @@ import 'package:spotsell/src/data/services/secure_storage_service.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final Dio _dio;
   final SecureStorageService _secureStorage;
-  final Logger _logger = Logger(output: getService<LoggerService>());
+  final Logger _logger = Logger(
+    output: Env.ENVIRONMENT == 'production'
+        ? getService<LoggerService>()
+        : null,
+  );
 
   /// API Endpouints
   static const String _signInUrlEndpoint = '/log-in';
@@ -203,38 +207,75 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Result<AuthUser>> updateProfile(
-    String? firstName,
-    String? lastName,
-    String? username,
-    String? email,
-    String? phone,
-    DateTime? dateOfBirth,
-    String? gender,
-    File? profilePicture,
-  ) async {
+  Future<Result<AuthUser>> updateProfile(UpdateUserRequest request) async {
     try {
       _logger.i('Attempting profile update');
 
       // Prepare form data
-      final data = <String, dynamic>{};
-      if (firstName != null) data['first_name'] = firstName;
-      if (lastName != null) data['last_name'] = lastName;
-      if (username != null) data['username'] = username;
-      if (dateOfBirth != null) {
-        data['date_of_birth'] = dateOfBirth.toIso8601String();
-      }
-      if (gender != null) data['gender'] = gender;
-      if (gender != null) data['phone'] = phone;
-      if (gender != null) data['email'] = email;
-
       FormData formData;
-      if (profilePicture != null) {
-        data['attachments[]'] = await MultipartFile.fromFile(
-          profilePicture.path,
-          filename: 'profile_picture.jpg',
+
+      if (request.attachments != null && request.attachments!.isNotEmpty) {
+        final data = request.toJson();
+
+        final attachmentFiles = <MultipartFile>[];
+
+        for (final file in request.attachments!) {
+          final fileName = file.path.split('/').last;
+          attachmentFiles.add(
+            await MultipartFile.fromFile(file.path, filename: fileName),
+          );
+        }
+
+        data['attachments[]'] = attachmentFiles;
+        formData = FormData.fromMap(data);
+      } else {
+        formData = FormData.fromMap(request.toJson());
+      }
+
+      final response = await _dio.patch(
+        _updateProfileUrlEndpoint,
+        data: formData,
+        options: Options(headers: {'Content-Type': 'multipart/form-data'}),
+      );
+
+      if (response.statusCode == 200) {
+        final user = AuthUser.fromJson(response.data);
+        _logger.i('Profile update successful');
+        return Result.ok(user);
+      } else {
+        return Result.error(
+          Exception('Profile update failed: ${response.statusMessage}'),
         );
       }
+    } on DioException catch (e) {
+      return Result.error(_handleDioError(e, 'Profile update failed'));
+    } catch (e) {
+      _logger.e('Unexpected error during profile update', error: e);
+      return Result.error(
+        Exception('An unexpected error occurred during profile update'),
+      );
+    }
+  }
+
+  @override
+  Future<Result<AuthUser>> updateProfilePicture(File request) async {
+    try {
+      _logger.i('Attempting profile update');
+
+      // Prepare form data
+      FormData formData;
+
+      final data = <String, dynamic>{};
+
+      final fileName = request.path.split('/');
+      final attachmentFiles = <MultipartFile>[];
+
+      attachmentFiles.add(
+        await MultipartFile.fromFile(request.path, filename: fileName.last),
+      );
+
+      data['attachments[]'] = attachmentFiles;
+
       formData = FormData.fromMap(data);
 
       final response = await _dio.patch(

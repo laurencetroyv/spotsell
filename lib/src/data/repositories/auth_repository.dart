@@ -17,16 +17,9 @@ abstract class AuthRepository {
   Future<Result<AuthUser>> getCurrentUser(String? token);
 
   /// Update user profile
-  Future<Result<AuthUser>> updateProfile(
-    String? firstName,
-    String? lastName,
-    String? username,
-    String? email,
-    String? phone,
-    DateTime? dateOfBirth,
-    String? gender,
-    File? profilePicture,
-  );
+  Future<Result<AuthUser>> updateProfile(UpdateUserRequest request);
+
+  Future<Result<AuthUser>> updateProfilePicture(File request);
 
   /// Delete account
   Future<Result<void>> deleteAccount(String password);

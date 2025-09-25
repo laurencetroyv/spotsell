@@ -46,6 +46,33 @@ class SignUpRequest {
   };
 }
 
+class UpdateUserRequest {
+  final String firstName, lastName, username, email, gender, phone;
+  final DateTime dateOfBirth;
+  final List<File>? attachments;
+
+  const UpdateUserRequest({
+    required this.firstName,
+    required this.lastName,
+    required this.username,
+    required this.email,
+    required this.phone,
+    required this.dateOfBirth,
+    required this.gender,
+    this.attachments,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'first_name': firstName,
+    'last_name': lastName,
+    'username': username,
+    'email': email,
+    'gender': gender,
+    'date_of_birth': dateOfBirth.toIso8601String(),
+    'phone': phone,
+  };
+}
+
 class Attachment {
   String id, originalName, mimeType, url;
   int fileSize;

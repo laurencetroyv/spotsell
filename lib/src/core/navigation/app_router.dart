@@ -12,11 +12,11 @@ import 'package:spotsell/src/data/entities/user_role.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/feature/admin/admin_screen.dart';
 import 'package:spotsell/src/ui/feature/buyer/buyer_screen.dart';
+import 'package:spotsell/src/ui/feature/buyer/pages/manage_store_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/sign_in/sign_in_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/sign_up/sign_up_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/welcome/welcome_screen.dart';
 import 'package:spotsell/src/ui/feature/navigation_guard.dart';
-import 'package:spotsell/src/ui/feature/seller/seller_screen.dart';
 
 /// Central router configuration for the application
 /// Handles platform-aware route generation, navigation transitions, and authentication guards
@@ -103,17 +103,8 @@ class AppRouter {
         return const NavigationGuard();
 
       case RouteNames.buyer:
-        return const BuyerScreen();
-
       case RouteNames.seller:
-        // Check if user has seller role
-        if (!authService.isSeller) {
-          return _UnauthorizedScreen(
-            requiredRole: 'Seller',
-            message: 'You need seller permissions to access this area.',
-          );
-        }
-        return const SellerScreen();
+        return const BuyerScreen();
 
       case RouteNames.admin:
         // Check if user has admin role
@@ -124,6 +115,17 @@ class AppRouter {
           );
         }
         return const AdminScreen();
+
+      case RouteNames.manageStores:
+        debugPrint('Creating ManageStoresScreen route');
+        try {
+          final screen = const ManageStoresScreen();
+          debugPrint('ManageStoresScreen created successfully');
+          return screen;
+        } catch (e) {
+          debugPrint('Error creating ManageStoresScreen: $e');
+          rethrow;
+        }
 
       // TODO: Add other authenticated routes like profile, settings
       case RouteNames.profile:
@@ -140,9 +142,7 @@ class AppRouter {
     switch (role) {
       case UserRole.admin:
         return const AdminScreen();
-      case UserRole.seller:
-        return const SellerScreen();
-      case UserRole.buyer:
+      default:
         return const BuyerScreen();
     }
   }

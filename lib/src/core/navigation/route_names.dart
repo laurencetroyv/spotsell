@@ -13,6 +13,7 @@ class RouteNames {
   static const String admin = '/admin';
   static const String profile = '/profile';
   static const String settings = '/settings';
+  static const String manageStores = '/manage-store';
 
   static const List<String> allRoutes = [
     welcome,
@@ -24,6 +25,7 @@ class RouteNames {
     admin,
     profile,
     settings,
+    manageStores,
   ];
 
   // Helper method to check if route requires authentication

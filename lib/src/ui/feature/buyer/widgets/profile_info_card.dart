@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:fluent_ui/fluent_ui.dart' as fl;
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
+import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
-import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/auth_request.dart';
 import 'package:spotsell/src/data/entities/store_request.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
@@ -40,8 +40,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
   late AuthService _authService;
   late AuthUser? _user;
   late ProfileViewModel _viewModel;
-
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -467,7 +465,7 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
 
   Future<void> _handleBecomeSellerOrManageStore() async {
     if (_authService.isSeller) {
-      // Navigate to seller UI
+      context.pushNamed(RouteNames.manageStores);
     } else {
       // Show create store dialog to become a seller
       await _showCreateStoreDialog();
@@ -589,117 +587,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
         duration: const Duration(seconds: 3),
       ),
     );
-  }
-
-  // Optional: Add a method to handle profile picture update separately
-  Future<void> _handleUpdateProfilePicture() async {
-    if (_user == null) return;
-
-    try {
-      await ProfileDialogUtils.showProfilePictureOptions(
-        context,
-        hasExistingPicture: _user!.attachments?.isNotEmpty == true,
-        onCamera: () => _updateProfilePictureFromCamera(),
-        onGallery: () => _updateProfilePictureFromGallery(),
-        onRemove: () => _removeProfilePicture(),
-      );
-    } catch (e) {
-      debugPrint('Error showing profile picture options: $e');
-      _viewModel.showErrorMessage(
-        'Failed to open picture options. Please try again.',
-      );
-    }
-  }
-
-  // Helper methods for profile picture updates
-  Future<void> _updateProfilePictureFromCamera() async {
-    await _updateProfilePictureFromSource(ImageSource.camera);
-  }
-
-  Future<void> _updateProfilePictureFromGallery() async {
-    await _updateProfilePictureFromSource(ImageSource.gallery);
-  }
-
-  Future<void> _updateProfilePictureFromSource(ImageSource source) async {
-    try {
-      final ImagePicker imagePicker = ImagePicker();
-      final XFile? pickedFile = await imagePicker.pickImage(
-        source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        final File imageFile = File(pickedFile.path);
-
-        // Show loading indicator
-        setState(() => _isLoading = true);
-
-        final result = await _authService.updateProfile(
-          profilePicture: imageFile,
-        );
-
-        setState(() => _isLoading = false);
-
-        switch (result) {
-          case Ok<AuthUser>():
-            setState(() {
-              _user = result.value;
-            });
-            _viewModel.showSuccessMessage(
-              'Profile picture updated successfully!',
-            );
-            break;
-          case Error<AuthUser>():
-            _viewModel.showErrorMessage(
-              'Failed to update profile picture: ${result.error}',
-            );
-            break;
-        }
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
-      debugPrint('Error updating profile picture: $e');
-      _viewModel.showErrorMessage(
-        'Failed to update profile picture. Please try again.',
-      );
-    }
-  }
-
-  Future<void> _removeProfilePicture() async {
-    try {
-      // Show loading indicator
-      setState(() => _isLoading = true);
-
-      final result = await _authService.updateProfile(
-        profilePicture: null, // This should remove the profile picture
-      );
-
-      setState(() => _isLoading = false);
-
-      switch (result) {
-        case Ok<AuthUser>():
-          setState(() {
-            _user = result.value;
-          });
-          _viewModel.showSuccessMessage(
-            'Profile picture removed successfully!',
-          );
-          break;
-        case Error<AuthUser>():
-          _viewModel.showErrorMessage(
-            'Failed to remove profile picture: ${result.error}',
-          );
-          break;
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
-      debugPrint('Error removing profile picture: $e');
-      _viewModel.showErrorMessage(
-        'Failed to remove profile picture. Please try again.',
-      );
-    }
   }
 
   void _handleVerification() {

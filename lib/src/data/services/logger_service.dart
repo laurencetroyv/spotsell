@@ -33,7 +33,7 @@ class LoggerService extends LogOutput {
 
       await _cleanupOldLogs();
     } catch (e) {
-      print('Failed to initialize logger: $e');
+      debugPrint('Failed to initialize logger: $e');
     }
   }
 
@@ -50,7 +50,7 @@ class LoggerService extends LogOutput {
         _logFile!.writeAsStringSync(logEntry, mode: FileMode.append);
       }
     } catch (e) {
-      print('Failed to write log: $e');
+      debugPrint('Failed to write log: $e');
     }
   }
 
@@ -79,10 +79,12 @@ class LoggerService extends LogOutput {
         for (int i = _maxLogFiles; i < logFiles.length; i++) {
           await logFiles[i].delete();
         }
-        print('Cleaned up ${logFiles.length - _maxLogFiles} old log files');
+        debugPrint(
+          'Cleaned up ${logFiles.length - _maxLogFiles} old log files',
+        );
       }
     } catch (e) {
-      print('Failed to cleanup old logs: $e');
+      debugPrint('Failed to cleanup old logs: $e');
     }
   }
 
@@ -106,7 +108,7 @@ class LoggerService extends LogOutput {
           .take(lines)
           .toList();
     } catch (e) {
-      print('Failed to read logs: $e');
+      debugPrint('Failed to read logs: $e');
       return [];
     }
   }
@@ -122,10 +124,10 @@ class LoggerService extends LogOutput {
             await entity.delete();
           }
         }
-        print('All spotsell log files cleared');
+        debugPrint('All spotsell log files cleared');
       }
     } catch (e) {
-      print('Failed to clear logs: $e');
+      debugPrint('Failed to clear logs: $e');
     }
   }
 }

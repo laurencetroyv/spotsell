@@ -6,7 +6,6 @@ import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/feature/admin/admin_screen.dart';
 import 'package:spotsell/src/ui/feature/buyer/buyer_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/welcome/welcome_screen.dart';
-import 'package:spotsell/src/ui/feature/seller/seller_screen.dart';
 
 /// Widget that guards routes based on authentication state
 /// Automatically redirects users based on their authentication and role status
@@ -174,9 +173,7 @@ class _NavigationGuardState extends State<NavigationGuard> {
     switch (primaryRole) {
       case UserRole.admin:
         return const AdminScreen();
-      case UserRole.seller:
-        return const SellerScreen();
-      case UserRole.buyer:
+      default:
         return const BuyerScreen();
     }
   }

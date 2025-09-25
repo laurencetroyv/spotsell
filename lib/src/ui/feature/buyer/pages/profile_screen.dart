@@ -296,22 +296,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
+    final stores = _viewModel.userStores;
+
     return Column(
       children: [
         _buildSectionHeader(context, 'Stores', 'Manage Stores'),
         SizedBox(height: responsive.smallSpacing),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: _viewModel.userStores.map((e) {
-            return Row(
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Expanded(
-                  child: StoreItemCard(storeName: e.name, showHeart: true),
-                ),
-                SizedBox(width: responsive.mediumSpacing),
+                ...stores.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final store = entry.value;
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      right: index < stores.length - 1
+                          ? responsive.mediumSpacing
+                          : 0,
+                    ),
+                    child: SizedBox(
+                      width:
+                          responsive.screenWidth -
+                          (responsive.horizontalPadding * 2),
+                      child: StoreItemCard(
+                        storeName: store.name,
+                        showHeart: true,
+                      ),
+                    ),
+                  );
+                }),
               ],
-            );
-          }).toList(),
+            ),
+          ),
         ),
       ],
     );

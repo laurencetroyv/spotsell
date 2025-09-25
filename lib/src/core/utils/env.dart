@@ -8,4 +8,7 @@ part 'env.g.dart';
 abstract class Env {
   @EnviedField(varName: 'API', obfuscate: true)
   static final String API = _Env.API;
+
+  @EnviedField(varName: 'SENTRY_DNS', obfuscate: true)
+  static final String SENTRY_DNS = _Env.SENTRY_DNS;
 }

@@ -19,6 +19,7 @@ import 'package:spotsell/src/ui/feature/buyer/utils/profile_dialog_utils.dart';
 import 'package:spotsell/src/ui/feature/buyer/utils/store_dialog_utils.dart';
 import 'package:spotsell/src/ui/feature/buyer/view_models/profile_view_model.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_button.dart';
+import 'package:spotsell/src/ui/shared/widgets/role_badge.dart';
 
 class ProfileInfoCard extends StatefulWidget {
   const ProfileInfoCard({
@@ -179,7 +180,7 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
                     ),
                   ),
                   SizedBox(width: responsive.smallSpacing),
-                  _buildRoleBadge(primaryRole),
+                  RoleBadge(primaryRole),
                 ],
               ),
 
@@ -306,6 +307,7 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
                 ),
               ),
               SizedBox(width: responsive.mediumSpacing),
+
               Expanded(
                 child: AdaptiveButton(
                   onPressed: _handleBecomeSellerOrManageStore,
@@ -344,34 +346,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
     );
   }
 
-  Widget _buildRoleBadge(String role) {
-    final roleData = _getRoleData(role);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: roleData['color'].withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: roleData['color'].withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(roleData['icon'], size: 12, color: roleData['color']),
-          const SizedBox(width: 4),
-          Text(
-            roleData['label'],
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: roleData['color'],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildStatsRow(ResponsiveBreakpoints responsive) {
     final joinded = DateFormat('MMM. dd, yyyy').format(_user!.createdAt);
 
@@ -403,6 +377,7 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
                   Expanded(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
                           stat['value']!,
@@ -592,28 +567,5 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
   void _handleVerification() {
     // TODO: Navigate to verification screen
     debugPrint('Verification tapped');
-  }
-
-  Map<String, dynamic> _getRoleData(String role) {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return {
-          'label': 'Admin',
-          'icon': Icons.admin_panel_settings,
-          'color': Colors.purple.shade600,
-        };
-      case 'seller':
-        return {
-          'label': 'Seller',
-          'icon': Icons.store,
-          'color': Colors.blue.shade600,
-        };
-      default:
-        return {
-          'label': 'Buyer',
-          'icon': Icons.shopping_bag,
-          'color': Colors.green.shade600,
-        };
-    }
   }
 }

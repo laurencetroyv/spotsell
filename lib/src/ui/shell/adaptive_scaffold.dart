@@ -24,6 +24,7 @@ class AdaptiveScaffold extends StatelessWidget {
     this.extendBody = false,
     this.extendBodyBehindAppBar = false,
     this.signOut,
+    this.isLoading,
   });
 
   final Widget child;
@@ -39,6 +40,7 @@ class AdaptiveScaffold extends StatelessWidget {
   final bool extendBody;
   final bool extendBodyBehindAppBar;
   final VoidCallback? signOut;
+  final bool? isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +63,12 @@ class AdaptiveScaffold extends StatelessWidget {
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
+    if (isLoading != null && isLoading!) {
+      return CupertinoPageScaffold(
+        child: Center(child: CupertinoActivityIndicator()),
+      );
+    }
+
     // For Cupertino, we need to handle navigation differently
     if (responsive.shouldShowNavigationRail && navigationRail != null) {
       return CupertinoPageScaffold(
@@ -158,6 +166,13 @@ class AdaptiveScaffold extends StatelessWidget {
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
+    if (isLoading != null && isLoading!) {
+      return fl.ScaffoldPage(
+        padding: EdgeInsets.zero,
+        content: Center(child: fl.ProgressRing()),
+      );
+    }
+
     // For Fluent UI, use ScaffoldPage with NavigationView if navigation is needed
     if (navigationRail != null) {
       return fl.NavigationView(
@@ -255,6 +270,10 @@ class AdaptiveScaffold extends StatelessWidget {
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
+    if (isLoading != null && isLoading!) {
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     // For Material, use standard Scaffold with responsive navigation
     if (responsive.shouldShowNavigationRail && navigationRail != null) {
       return Scaffold(

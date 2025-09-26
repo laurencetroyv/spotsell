@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
+import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
@@ -30,6 +31,8 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
   late AuthService _authService;
   late StoreRepository _storeRepository;
 
+  bool isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +40,7 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
   }
 
   Future<void> _initializeServices() async {
+    setState(() => isLoading = true);
     try {
       _authService = getService<AuthService>();
       _storeRepository = getService<StoreRepository>();
@@ -47,24 +51,17 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
       );
 
       _viewModel.initialize();
-      _viewModel.addListener(_onViewModelChanged);
 
-      // Load stores
       await _viewModel.loadStores();
     } catch (e) {
       debugPrint('Error initializing services: $e');
-    }
-  }
-
-  void _onViewModelChanged() {
-    if (mounted) {
-      setState(() {});
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
   @override
   void dispose() {
-    _viewModel.removeListener(_onViewModelChanged);
     _viewModel.dispose();
     super.dispose();
   }
@@ -74,6 +71,7 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
     final responsive = ResponsiveBreakpoints.of(context);
 
     return AdaptiveScaffold(
+      isLoading: isLoading,
       appBar: _buildAppBar(context, responsive),
       floatingActionButton: _buildFloatingActionButton(context, responsive),
       child: _buildBody(context, responsive),
@@ -657,13 +655,8 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
   }
 
   Future<void> _handleOpenStore(Store store) async {
-    // Navigate to seller screen with store context
     try {
-      // For now, just navigate to seller screen
-      // You might want to pass store data as arguments
-      Navigator.of(
-        context,
-      ).pushNamed(RouteNames.seller, arguments: {'store': store});
+      await context.pushNamedAndClearStack(RouteNames.seller, arguments: store);
     } catch (e) {
       debugPrint('Error opening store: $e');
       _showErrorMessage('Failed to open store. Please try again.');

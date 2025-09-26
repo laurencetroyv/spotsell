@@ -32,11 +32,6 @@ class _BuyerScreenState extends State<BuyerScreen>
     _viewModel = BuyerViewModel();
     _viewModel.initialize();
 
-    _viewModel.pages = [
-      ExploreScreen(_viewModel),
-      SellScreen(),
-      ProfileScreen(),
-    ];
     _viewModel.tabController = TabController(
       length: _viewModel.tabs.length,
       vsync: this,
@@ -50,6 +45,12 @@ class _BuyerScreenState extends State<BuyerScreen>
     if (!_authService.isInitialized) {
       await _authService.initialize();
     }
+
+    _viewModel.pages = [
+      ExploreScreen(_viewModel),
+      SellScreen(),
+      ProfileScreen(_authService),
+    ];
   }
 
   @override

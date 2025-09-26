@@ -1,0 +1,230 @@
+name: 🔢 Auto Version Bump
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [develop]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  version_bump:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' || (github.event.action == 'synchronize' && github.event.before == '0000000000000000000000000000000000000000')
+    
+    steps:
+      - name: 📂 Checkout PR branch
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: 🔍 Determine version bump type
+        id: bump_type
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+          echo "Branch name: $BRANCH_NAME"
+          
+          # Determine bump type based on branch prefix
+          if [[ "$BRANCH_NAME" =~ ^feature/ ]]; then
+            BUMP_TYPE="minor"
+            echo "🚀 Feature branch detected - Minor version bump"
+          elif [[ "$BRANCH_NAME" =~ ^(bugfix/|fix/|hotfix/|refactor/) ]]; then
+            BUMP_TYPE="patch"
+            echo "🐛 Bug/Refactor branch detected - Patch version bump"
+          else
+            echo "⚠️ Unknown branch type - No version bump"
+            echo "should_bump=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "should_bump=true" >> $GITHUB_OUTPUT
+
+      - name: 📖 Read current version
+        if: steps.bump_type.outputs.should_bump == 'true'
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)
+          echo "Current version: $CURRENT_VERSION"
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          
+          # Split version into components
+          IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
+          echo "major=$major" >> $GITHUB_OUTPUT
+          echo "minor=$minor" >> $GITHUB_OUTPUT
+          echo "patch=$patch" >> $GITHUB_OUTPUT
+
+      - name: 🔢 Calculate new version
+        if: steps.bump_type.outputs.should_bump == 'true'
+        id: new_version
+        run: |
+          BUMP_TYPE="${{ steps.bump_type.outputs.bump_type }}"
+          MAJOR="${{ steps.current_version.outputs.major }}"
+          MINOR="${{ steps.current_version.outputs.minor }}"
+          PATCH="${{ steps.current_version.outputs.patch }}"
+          
+          if [[ "$BUMP_TYPE" == "minor" ]]; then
+            NEW_MINOR=$((MINOR + 1))
+            NEW_VERSION="$MAJOR.$NEW_MINOR.0"
+            echo "📈 Minor bump: $MAJOR.$MINOR.$PATCH → $NEW_VERSION"
+          elif [[ "$BUMP_TYPE" == "patch" ]]; then
+            NEW_PATCH=$((PATCH + 1))
+            NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+            echo "🔧 Patch bump: $MAJOR.$MINOR.$PATCH → $NEW_VERSION"
+          fi
+          
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: ✏️ Update pubspec.yaml
+        if: steps.bump_type.outputs.should_bump == 'true'
+        run: |
+          CURRENT_VERSION="${{ steps.current_version.outputs.current }}"
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          
+          # Get the full version line with build number if it exists
+          FULL_VERSION_LINE=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
+          
+          if [[ "$FULL_VERSION_LINE" == *"+"* ]]; then
+            # Keep existing build number
+            BUILD_NUMBER=$(echo "$FULL_VERSION_LINE" | cut -d'+' -f2)
+            NEW_FULL_VERSION="$NEW_VERSION+$BUILD_NUMBER"
+          else
+            NEW_FULL_VERSION="$NEW_VERSION"
+          fi
+          
+          echo "Updating version from $CURRENT_VERSION to $NEW_FULL_VERSION"
+          
+          # Update pubspec.yaml
+          sed -i "s/^version: .*/version: $NEW_FULL_VERSION/" pubspec.yaml
+          
+          # Verify the change
+          echo "Updated pubspec.yaml version line:"
+          grep '^version:' pubspec.yaml
+
+      - name: 🔍 Check if version changed
+        if: steps.bump_type.outputs.should_bump == 'true'
+        id: check_changes
+        run: |
+          if git diff --quiet pubspec.yaml; then
+            echo "No changes detected in pubspec.yaml"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in pubspec.yaml"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 💾 Commit version bump
+        if: steps.bump_type.outputs.should_bump == 'true' && steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add pubspec.yaml
+          git commit -m "🔢 Bump version to ${{ steps.new_version.outputs.version }}
+
+          - Branch type: ${{ steps.bump_type.outputs.bump_type }}
+          - Previous version: ${{ steps.current_version.outputs.current }}
+          - New version: ${{ steps.new_version.outputs.version }}
+          
+          [skip ci]"
+          
+          git push origin ${{ github.head_ref }}
+
+      - name: 💬 Add PR comment
+        if: steps.bump_type.outputs.should_bump == 'true' && steps.check_changes.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🔢 Version Auto-Bump')
+            );
+
+            const commentBody = `## 🔢 Version Auto-Bump
+
+            ✅ **Version updated successfully!**
+
+            | Field | Value |
+            |-------|-------|
+            | Branch Type | \`${{ steps.bump_type.outputs.bump_type }}\` |
+            | Previous Version | \`${{ steps.current_version.outputs.current }}\` |
+            | New Version | \`${{ steps.new_version.outputs.version }}\` |
+            | Branch | \`${{ github.head_ref }}\` |
+
+            ### 📋 Branch Naming Convention
+            - \`feature/*\` → Minor version bump (x.**Y**.0)
+            - \`bugfix/*\`, \`fix/*\`, \`hotfix/*\`, \`refactor/*\` → Patch version bump (x.y.**Z**)
+
+            *This comment was auto-generated by the version bump workflow.*`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
+
+      - name: 🚫 Add PR comment for unsupported branch
+        if: steps.bump_type.outputs.should_bump == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🔢 Version Auto-Bump')
+            );
+
+            const commentBody = `## 🔢 Version Auto-Bump
+
+            ⚠️ **No version bump applied**
+
+            The branch \`${{ github.head_ref }}\` doesn't follow the conventional naming pattern for automatic version bumping.
+
+            ### 📋 Supported Branch Naming Convention
+            - \`feature/*\` → Minor version bump (x.**Y**.0)
+            - \`bugfix/*\`, \`fix/*\`, \`hotfix/*\`, \`refactor/*\` → Patch version bump (x.y.**Z**)
+
+            If you want automatic version bumping, please rename your branch to follow the convention above.
+
+            *This comment was auto-generated by the version bump workflow.*`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }

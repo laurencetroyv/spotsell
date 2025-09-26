@@ -30,7 +30,15 @@ class RouteNames {
 
   // Helper method to check if route requires authentication
   static bool requiresAuth(String routeName) {
-    const authRequiredRoutes = [home, buyer, seller, admin, profile, settings];
+    const authRequiredRoutes = [
+      home,
+      buyer,
+      seller,
+      admin,
+      profile,
+      settings,
+      manageStores,
+    ];
     return authRequiredRoutes.contains(routeName);
   }
 

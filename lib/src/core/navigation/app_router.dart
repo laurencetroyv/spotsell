@@ -17,6 +17,8 @@ import 'package:spotsell/src/ui/feature/guests/sign_in/sign_in_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/sign_up/sign_up_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/welcome/welcome_screen.dart';
 import 'package:spotsell/src/ui/feature/navigation_guard.dart';
+import 'package:spotsell/src/ui/feature/seller/seller_screen.dart';
+import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 
 /// Central router configuration for the application
 /// Handles platform-aware route generation, navigation transitions, and authentication guards
@@ -99,41 +101,16 @@ class AppRouter {
   ) {
     switch (routeName) {
       case RouteNames.home:
-        // Home route uses AuthGuard to determine appropriate screen
         return const NavigationGuard();
 
-      case RouteNames.buyer:
-      case RouteNames.seller:
-        return const BuyerScreen();
-
-      case RouteNames.admin:
-        // Check if user has admin role
-        if (!authService.isAdmin) {
-          return _UnauthorizedScreen(
-            requiredRole: 'Admin',
-            message: 'You need administrator permissions to access this area.',
-          );
-        }
-        return const AdminScreen();
-
       case RouteNames.manageStores:
-        debugPrint('Creating ManageStoresScreen route');
-        try {
-          final screen = const ManageStoresScreen();
-          debugPrint('ManageStoresScreen created successfully');
-          return screen;
-        } catch (e) {
-          debugPrint('Error creating ManageStoresScreen: $e');
-          rethrow;
-        }
+        return const ManageStoresScreen();
 
-      // TODO: Add other authenticated routes like profile, settings
-      case RouteNames.profile:
-      case RouteNames.settings:
-        return _ComingSoonScreen(routeName: routeName);
+      case RouteNames.seller:
+        return const SellerScreen();
 
       default:
-        return null;
+        return _ComingSoonScreen(routeName: routeName);
     }
   }
 
@@ -291,9 +268,9 @@ class _ErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AdaptiveScaffold(
       appBar: AppBar(title: const Text('Error')),
-      body: Center(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

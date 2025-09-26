@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 import 'package:spotsell/src/data/entities/store_request.dart';
 import 'package:spotsell/src/data/repositories/store_repository.dart';

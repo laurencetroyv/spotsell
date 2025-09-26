@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:fluent_ui/fluent_ui.dart' as fl;
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
@@ -17,6 +18,7 @@ import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/feature/buyer/utils/store_dialog_utils.dart';
 import 'package:spotsell/src/ui/feature/buyer/view_models/manage_store_view_model.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_button.dart';
+import 'package:spotsell/src/ui/shared/widgets/adaptive_popup_menu.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 
 class ManageStoresScreen extends StatefulWidget {
@@ -70,11 +72,13 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    return AdaptiveScaffold(
-      isLoading: isLoading,
-      appBar: _buildAppBar(context, responsive),
-      floatingActionButton: _buildFloatingActionButton(context, responsive),
-      child: _buildBody(context, responsive),
+    return SafeArea(
+      child: AdaptiveScaffold(
+        isLoading: isLoading,
+        appBar: _buildAppBar(context, responsive),
+        floatingActionButton: _buildFloatingActionButton(context, responsive),
+        child: _buildBody(context, responsive),
+      ),
     );
   }
 
@@ -84,12 +88,8 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
   ) {
     if (!kIsWeb) {
       if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoNavigationBar(
-          backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
-          middle: Text(
-            'Manage Stores',
-            style: CupertinoTheme.of(context).textTheme.navTitleTextStyle,
-          ),
+        CupertinoNavigationBar(
+          middle: Text('Manage Stores'),
           leading: CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () => Navigator.of(context).pop(),
@@ -167,86 +167,11 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
   }
 
   Widget _buildBody(BuildContext context, ResponsiveBreakpoints responsive) {
-    if (_viewModel.isLoading) {
-      return _buildLoadingState(context, responsive);
-    }
-
-    if (_viewModel.hasError) {
-      return _buildErrorState(context, responsive);
-    }
-
     if (_viewModel.stores.isEmpty) {
       return _buildEmptyState(context, responsive);
     }
 
     return _buildStoresList(context, responsive);
-  }
-
-  Widget _buildLoadingState(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildPlatformLoadingIndicator(),
-          SizedBox(height: responsive.mediumSpacing),
-          Text(
-            'Loading your stores...',
-            style: ThemeUtils.getAdaptiveTextStyle(context, TextStyleType.body),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(responsive.largeSpacing),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            SizedBox(height: responsive.mediumSpacing),
-            Text(
-              'Unable to Load Stores',
-              style: ThemeUtils.getAdaptiveTextStyle(
-                context,
-                TextStyleType.title,
-              )?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            SizedBox(height: responsive.smallSpacing),
-            Text(
-              _viewModel.errorMessage ?? 'An unexpected error occurred',
-              style:
-                  ThemeUtils.getAdaptiveTextStyle(
-                    context,
-                    TextStyleType.body,
-                  )?.copyWith(
-                    color: ThemeUtils.getTextColor(
-                      context,
-                    ).withValues(alpha: 0.7),
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: responsive.largeSpacing),
-            AdaptiveButton(
-              onPressed: () => _viewModel.loadStores(),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget _buildEmptyState(
@@ -307,8 +232,7 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
     return Column(
       children: [
         // Header section with create store button (for non-FAB platforms)
-        if (!kIsWeb &&
-            (Platform.isMacOS || Platform.isIOS || Platform.isWindows))
+        if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))
           Container(
             padding: EdgeInsets.all(responsive.horizontalPadding),
             child: Row(
@@ -355,7 +279,49 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
     ResponsiveBreakpoints responsive,
     Store store,
   ) {
-    return Container(
+    final items = [
+      PopupMenuItem(
+        value: 'open',
+        onTap: () async {
+          await _handleOpenStore(store);
+        },
+        child: Row(
+          children: [
+            Icon(Icons.launch, size: 18, color: Colors.blue.shade600),
+            const SizedBox(width: 12),
+            const Text('Open Store'),
+          ],
+        ),
+      ),
+      PopupMenuItem(
+        value: 'edit',
+        onTap: () async {
+          await _handleEditStore(store);
+        },
+        child: Row(
+          children: [
+            Icon(Icons.edit, size: 18, color: Colors.orange.shade600),
+            const SizedBox(width: 12),
+            const Text('Edit Store'),
+          ],
+        ),
+      ),
+      PopupMenuItem(
+        value: 'delete',
+        onTap: () async {
+          await _handleDeleteStore(store);
+        },
+        child: Row(
+          children: [
+            Icon(Icons.delete, size: 18, color: Colors.red.shade600),
+            const SizedBox(width: 12),
+            const Text('Delete Store'),
+          ],
+        ),
+      ),
+    ];
+
+    final card = Container(
       padding: EdgeInsets.all(responsive.mediumSpacing),
       decoration: ThemeUtils.getAdaptiveCardDecoration(context),
       child: Column(
@@ -411,59 +377,16 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
                   ],
                 ),
               ),
-              PopupMenuButton<String>(
-                icon: Icon(
-                  Icons.more_vert,
-                  color: ThemeUtils.getTextColor(
-                    context,
-                  ).withValues(alpha: 0.7),
+              if (!kIsWeb && !(Platform.isMacOS || Platform.isIOS))
+                AdaptivePopupMenu(
+                  items: items,
+                  child: Icon(
+                    Icons.more_vert,
+                    color: ThemeUtils.getTextColor(
+                      context,
+                    ).withValues(alpha: 0.7),
+                  ),
                 ),
-                onSelected: (value) => _handleStoreAction(value, store),
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'open',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.launch,
-                          size: 18,
-                          color: Colors.blue.shade600,
-                        ),
-                        const SizedBox(width: 12),
-                        const Text('Open Store'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.edit,
-                          size: 18,
-                          color: Colors.orange.shade600,
-                        ),
-                        const SizedBox(width: 12),
-                        const Text('Edit Store'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.delete,
-                          size: 18,
-                          color: Colors.red.shade600,
-                        ),
-                        const SizedBox(width: 12),
-                        const Text('Delete Store'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
 
@@ -503,6 +426,25 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
         ],
       ),
     );
+
+    if (!kIsWeb && Platform.isMacOS || Platform.isIOS) {
+      return Slidable(
+        endActionPane: ActionPane(
+          motion: DrawerMotion(),
+          children: [
+            SlidableAction(
+              onPressed: (context) => _handleDeleteStore(store),
+              icon: Icons.delete,
+              label: 'Delete',
+              backgroundColor: Colors.red,
+            ),
+          ],
+        ),
+        child: card,
+      );
+    }
+
+    return card;
   }
 
   Widget _buildStoreDetails(
@@ -589,18 +531,6 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
     );
   }
 
-  Widget _buildPlatformLoadingIndicator() {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return const CupertinoActivityIndicator(radius: 16);
-      }
-      if (Platform.isWindows) {
-        return const fl.ProgressRing();
-      }
-    }
-    return const CircularProgressIndicator();
-  }
-
   Future<void> _handleCreateStore() async {
     try {
       final newStore = await StoreDialogUtils.showCreateStoreDialog(context);
@@ -660,20 +590,6 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
     } catch (e) {
       debugPrint('Error opening store: $e');
       _showErrorMessage('Failed to open store. Please try again.');
-    }
-  }
-
-  void _handleStoreAction(String action, Store store) {
-    switch (action) {
-      case 'open':
-        _handleOpenStore(store);
-        break;
-      case 'edit':
-        _handleEditStore(store);
-        break;
-      case 'delete':
-        _handleDeleteStore(store);
-        break;
     }
   }
 

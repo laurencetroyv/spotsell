@@ -137,28 +137,30 @@ class AdaptiveScaffold extends StatelessWidget {
             )
           : null,
       resizeToAvoidBottomInset: resizeToAvoidBottomInset ?? true,
-      child: Stack(
-        children: [
-          child,
-          if (floatingActionButton != null)
-            Positioned(
-              right: responsive.horizontalPadding,
-              bottom:
-                  responsive.verticalPadding +
-                  (bottomNavigationBar != null
-                      ? kBottomNavigationBarHeight
-                      : 0),
-              child: floatingActionButton!,
-            ),
-          if (bottomNavigationBar != null)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: bottomNavigationBar!,
-            ),
-        ],
-      ),
+      child: (floatingActionButton != null || bottomNavigationBar != null)
+          ? Stack(
+              children: [
+                child,
+                if (floatingActionButton != null)
+                  Positioned(
+                    right: responsive.horizontalPadding,
+                    bottom:
+                        responsive.verticalPadding +
+                        (bottomNavigationBar != null
+                            ? kBottomNavigationBarHeight
+                            : 0),
+                    child: floatingActionButton!,
+                  ),
+                if (bottomNavigationBar != null)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: bottomNavigationBar!,
+                  ),
+              ],
+            )
+          : child,
     );
   }
 

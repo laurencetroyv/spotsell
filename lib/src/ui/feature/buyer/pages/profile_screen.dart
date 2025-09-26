@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
+import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
+import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
 import 'package:spotsell/src/core/utils/result.dart';
@@ -320,12 +322,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           : 0,
                     ),
                     child: SizedBox(
-                      width:
-                          responsive.screenWidth -
-                          (responsive.horizontalPadding * 2),
-                      child: StoreItemCard(
-                        storeName: store.name,
-                        showHeart: true,
+                      width: responsive.isMobile
+                          ? responsive.screenWidth -
+                                (responsive.horizontalPadding * 2)
+                          : 330,
+
+                      child: GestureDetector(
+                        onTap: () => context.pushNamed(
+                          RouteNames.seller,
+                          arguments: store,
+                        ),
+                        child: StoreItemCard(
+                          storeName: store.name,
+                          showHeart: true,
+                        ),
                       ),
                     ),
                   );
@@ -424,8 +434,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _handleSectionAction(String section) {
-    // TODO: Navigate to manage stores or favorites
-    debugPrint('Manage $section tapped');
+    switch (section) {
+      case 'stores':
+        context.pushNamed(RouteNames.manageStores);
+    }
   }
 
   Future<void> _handleSignOut() async {

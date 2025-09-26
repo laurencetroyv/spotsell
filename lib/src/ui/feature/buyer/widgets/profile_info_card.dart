@@ -55,9 +55,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
     final responsive = ResponsiveBreakpoints.of(context);
 
     final isVerified = _user?.verifiedAt != null;
-    final hasRoles = _user?.role?.isNotEmpty ?? false;
-    final primaryRole = hasRoles ? _user!.role!.first : 'buyer';
-
     return Container(
       padding: EdgeInsets.all(responsive.largeSpacing),
       decoration: BoxDecoration(
@@ -180,7 +177,7 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
                     ),
                   ),
                   SizedBox(width: responsive.smallSpacing),
-                  RoleBadge(primaryRole),
+                  RoleBadge('buyer'),
                 ],
               ),
 

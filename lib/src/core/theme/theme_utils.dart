@@ -358,6 +358,10 @@ class ThemeUtils {
             return CupertinoIcons.xmark;
           case AdaptiveIcon.signOut:
             return CupertinoIcons.arrow_right_square;
+          case AdaptiveIcon.messages:
+            return CupertinoIcons.chat_bubble;
+          case AdaptiveIcon.store:
+            return CupertinoIcons.bag;
         }
       }
 
@@ -380,7 +384,11 @@ class ThemeUtils {
           case AdaptiveIcon.close:
             return fl.FluentIcons.chrome_close;
           case AdaptiveIcon.signOut:
-            fl.FluentIcons.sign_out;
+            return fl.FluentIcons.sign_out;
+          case AdaptiveIcon.messages:
+            return fl.FluentIcons.message;
+          case AdaptiveIcon.store:
+            return fl.FluentIcons.store_logo16;
         }
       }
     }
@@ -405,6 +413,10 @@ class ThemeUtils {
         return Icons.close;
       case AdaptiveIcon.signOut:
         return Icons.logout;
+      case AdaptiveIcon.messages:
+        return Icons.chat;
+      case AdaptiveIcon.store:
+        return Icons.storefront;
     }
   }
 }
@@ -423,4 +435,6 @@ enum AdaptiveIcon {
   back,
   close,
   signOut,
+  messages,
+  store,
 }

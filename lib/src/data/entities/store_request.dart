@@ -75,7 +75,7 @@ class Store {
 
   @override
   String toString() {
-    return 'Store(id: $id, name: $name, description: $description, phone: $phone, email: $email)';
+    return 'Store(id: $id, name: $name, description: $description, slug: $slug, phone: $phone, email: $email, created_at: ${createdAt.toIso8601String()}, updatedAt: ${updatedAt.toIso8601String()})';
   }
 
   @override

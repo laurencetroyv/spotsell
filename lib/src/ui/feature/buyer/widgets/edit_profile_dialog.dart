@@ -940,10 +940,15 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
     final email = widget.user.email;
     final phone = widget.user.phone;
     final dateOfBirth = _selectedDateOfBirth ?? widget.user.dateOfBirth;
-    final gender = _gender != null ? _gender! ? 'Male' : 'Female' : widget.user.gender;
-    final attachments = _newProfilePicture != null ? [_newProfilePicture!] : null;
+    final gender = _gender != null
+        ? _gender!
+              ? 'Male'
+              : 'Female'
+        : widget.user.gender;
 
-
+    final attachments = _newProfilePicture != null
+        ? [_newProfilePicture!]
+        : null;
 
     try {
       final user = UpdateUserRequest(

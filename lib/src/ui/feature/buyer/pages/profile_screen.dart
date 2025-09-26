@@ -21,10 +21,13 @@ import 'package:spotsell/src/ui/feature/buyer/widgets/item_card.dart';
 import 'package:spotsell/src/ui/feature/buyer/widgets/profile_info_card.dart';
 import 'package:spotsell/src/ui/feature/buyer/widgets/store_item_card.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_button.dart';
+import 'package:spotsell/src/ui/shared/widgets/adaptive_progress_ring.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen(this.authService, {super.key});
+
+  final AuthService authService;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -36,37 +39,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late StoreRepository _storeRepository;
 
   AuthUser? _user;
-  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-
-    _initializeAuth().then((_) {
-      _initializeStoreRepository();
-    });
-
     _viewModel = ProfileViewModel();
     _viewModel.initialize();
-  }
 
-  Future<void> _initializeAuth() async {
-    setState(() => _isLoading = true);
+    _authService = widget.authService;
+    _user = widget.authService.currentUser;
 
-    try {
-      _authService = getService<AuthService>();
-      if (!_authService.isInitialized) {
-        await _authService.initialize();
-      }
-
-      setState(() {
-        _user = _authService.currentUser;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      debugPrint('Error initializing auth: $e');
-    }
+    _initializeStoreRepository();
   }
 
   Future<void> _initializeStoreRepository() async {
@@ -81,8 +64,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserStores() async {
-    if (!_authService.isSeller) return;
-
     setState(() => _viewModel.isLoadingStores = true);
 
     try {
@@ -91,17 +72,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         case Ok<List<Store>>():
           setState(() {
             _viewModel.userStores = result.value;
-            _viewModel.isLoadingStores = false;
           });
           break;
         case Error<List<Store>>():
-          setState(() => _viewModel.isLoadingStores = false);
           debugPrint('Error loading stores: ${result.error}');
           break;
       }
     } catch (e) {
-      setState(() => _viewModel.isLoadingStores = false);
       debugPrint('Error loading stores: $e');
+    } finally {
+      setState(() => _viewModel.isLoadingStores = false);
     }
   }
 
@@ -109,13 +89,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    return AdaptiveScaffold(
-      appBar: _buildAppBar(context, responsive),
-      child: _isLoading
-          ? _buildLoadingState(context)
-          : _user != null
-          ? _buildProfileContent(context, responsive)
-          : _buildErrorState(context),
+    return SafeArea(
+      child: AdaptiveScaffold(
+        appBar: _buildAppBar(context, responsive),
+        child: _buildProfileContent(context, responsive),
+      ),
     );
   }
 
@@ -197,78 +175,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildLoadingState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildPlatformLoadingIndicator(context),
-          const SizedBox(height: 16),
-          Text(
-            'Loading profile...',
-            style: ThemeUtils.getAdaptiveTextStyle(context, TextStyleType.body),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlatformLoadingIndicator(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return const CupertinoActivityIndicator(radius: 16);
-      }
-      if (Platform.isWindows) {
-        return const fl.ProgressRing();
-      }
-    }
-    return const CircularProgressIndicator();
-  }
-
-  Widget _buildErrorState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            ThemeUtils.getAdaptiveIcon(AdaptiveIcon.profile),
-            size: 64,
-            color: ThemeUtils.getTextColor(context).withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Unable to load profile',
-            style: ThemeUtils.getAdaptiveTextStyle(
-              context,
-              TextStyleType.title,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Please try again later',
-            style: ThemeUtils.getAdaptiveTextStyle(context, TextStyleType.body)
-                ?.copyWith(
-                  color: ThemeUtils.getTextColor(
-                    context,
-                  ).withValues(alpha: 0.7),
-                ),
-          ),
-          const SizedBox(height: 24),
-          AdaptiveButton(
-            onPressed: _initializeAuth,
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildProfileContent(
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
-    final hasStore = _user?.role?.isNotEmpty ?? false;
-
     return SingleChildScrollView(
       padding: EdgeInsets.all(responsive.horizontalPadding),
       child: Column(
@@ -282,8 +192,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           SizedBox(height: responsive.largeSpacing),
 
-          if (hasStore) _buildStoresSection(context, responsive),
-          if (hasStore) SizedBox(height: responsive.largeSpacing),
+          if (_authService.isSeller && _viewModel.userStores.isEmpty)
+            AdaptiveProgressRing()
+          else ...[
+            _buildStoresSection(context, responsive),
+            SizedBox(height: responsive.largeSpacing),
+          ],
 
           _buildFavoritesSection(context, responsive),
           SizedBox(height: responsive.extraLargeSpacing),

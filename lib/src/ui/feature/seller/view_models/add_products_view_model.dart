@@ -206,7 +206,6 @@ class AddProductsViewModel extends BaseViewModel {
       }
 
       final request = ProductsRequest(
-        id: '',
         title: titleController.text.trim(),
         description: descriptionController.text.trim(),
         price: priceController.text.trim(),

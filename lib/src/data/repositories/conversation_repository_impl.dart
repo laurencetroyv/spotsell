@@ -5,6 +5,7 @@ import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/utils/env.dart';
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/messages_request.dart';
+import 'package:spotsell/src/data/entities/meta_request.dart';
 import 'package:spotsell/src/data/repositories/conversation_repository.dart';
 import 'package:spotsell/src/data/services/logger_service.dart';
 import 'package:spotsell/src/data/services/secure_storage_service.dart';
@@ -215,7 +216,7 @@ class ConversationRepositoryImpl implements ConversationRepository {
         if (request.perPage != null) 'per_page': request.perPage.toString(),
         if (request.search != null && request.search!.isNotEmpty)
           'search': request.search,
-        if (request.showAll != null) 'show_all': request.showAll.toString(),
+        if (request.showAll != null) 'show_all': request.showAll! ? 1 : 0,
         if (request.sortBy != null && request.sortBy!.isNotEmpty)
           'sort_by': request.sortBy,
         if (request.sortOrder != null) 'sort_order': request.sortOrder!.name,
@@ -228,7 +229,7 @@ class ConversationRepositoryImpl implements ConversationRepository {
 
       if (response.statusCode == 200) {
         final conversation = List.from(
-          response.data,
+          response.data['data'],
         ).map((e) => Conversation.fromJson(response.data)).toList();
         return Result.ok(conversation);
       } else {

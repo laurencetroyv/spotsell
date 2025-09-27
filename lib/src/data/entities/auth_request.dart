@@ -154,4 +154,6 @@ class AuthUser {
       updatedAt: DateTime.parse(data['updated_at']),
     );
   }
+
+  String get name => '$firstName $lastName';
 }

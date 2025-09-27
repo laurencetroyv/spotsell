@@ -17,6 +17,7 @@ import 'package:spotsell/src/ui/feature/guests/sign_in/sign_in_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/sign_up/sign_up_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/welcome/welcome_screen.dart';
 import 'package:spotsell/src/ui/feature/navigation_guard.dart';
+import 'package:spotsell/src/ui/feature/seller/pages/add_product_screen.dart';
 import 'package:spotsell/src/ui/feature/seller/seller_screen.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 
@@ -108,6 +109,9 @@ class AppRouter {
 
       case RouteNames.seller:
         return const SellerScreen();
+
+      case RouteNames.addProduct:
+        return const AddProductScreen();
 
       default:
         return _ComingSoonScreen(routeName: routeName);

@@ -71,7 +71,30 @@ class ProductRepositoryImpl implements ProductRepository {
     try {
       _logger.i('Creating product');
 
-      final response = await _dio.post(createProducts, data: request.toJson());
+      FormData formData;
+
+      if (request.attachments != null && request.attachments!.isNotEmpty) {
+        final data = request.toJson();
+
+        final attachmentFiles = <MultipartFile>[];
+        for (final file in request.attachments!) {
+          final fileName = file.path.split('/').last;
+          attachmentFiles.add(
+            await MultipartFile.fromFile(file.path, filename: fileName),
+          );
+        }
+
+        data['attachments[]'] = attachmentFiles;
+        formData = FormData.fromMap(data);
+      } else {
+        formData = FormData.fromMap(request.toJson());
+      }
+
+      final response = await _dio.post(
+        createProducts,
+        data: formData,
+        options: Options(headers: {'Content-Type': 'multipart/form-data'}),
+      );
 
       if (response.statusCode == 201) {
         final product = Product.fromJson(response.data);
@@ -80,7 +103,7 @@ class ProductRepositoryImpl implements ProductRepository {
         return Result.error(Exception('Failed to create product'));
       }
     } on DioException catch (e) {
-      return Result.error(_handleDioError(e, 'Error creating product'));
+      return Result.error(_handleDioError(e, e.response?.data['message']));
     } catch (e) {
       _logger.e('Unexpected error creating product', error: e);
       return Result.error(Exception('Unexpected error occurred'));

@@ -4,13 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
+import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
 import 'package:spotsell/src/data/entities/products_request.dart';
 import 'package:spotsell/src/data/entities/store_request.dart';
 import 'package:spotsell/src/ui/feature/seller/view_models/products_view_model.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
-
-import 'add_products_screen.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen(this.store, {super.key});
@@ -31,18 +31,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
     _viewModel.initialize();
   }
 
-  void _addProduct() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddProductsScreen(store: widget.store),
-      ),
-    );
-  }
-
   Widget _buildFloatingActionButton() {
     return FloatingActionButton(
-      onPressed: _addProduct,
+      onPressed: () {
+        context.pushNamed(RouteNames.addProduct, arguments: widget.store);
+      },
       backgroundColor: ThemeUtils.getPrimaryColor(context),
       child: Icon(Icons.add, color: ThemeUtils.getTextColor(context)),
     );

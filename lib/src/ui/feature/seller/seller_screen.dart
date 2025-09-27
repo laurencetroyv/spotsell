@@ -54,7 +54,7 @@ class _SellerScreenState extends State<SellerScreen> {
 
     setState(() {
       _viewModel.pages = [
-        MessagesScreen(store),
+        ConversationScreen(store),
         ProductsScreen(store),
         ProfileScreen(store, authService: _authService),
       ];

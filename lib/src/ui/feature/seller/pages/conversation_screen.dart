@@ -1,80 +1,51 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
+import 'package:spotsell/src/data/entities/messages_request.dart';
 import 'package:spotsell/src/data/entities/store_request.dart';
+import 'package:spotsell/src/ui/feature/seller/view_models/conversation_view_model.dart';
+import 'package:spotsell/src/ui/shared/widgets/adaptive_text_field.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 
-class MessagesScreen extends StatefulWidget {
-  const MessagesScreen(this.store, {super.key});
+class ConversationScreen extends StatefulWidget {
+  const ConversationScreen(this.store, {super.key});
 
   final Store store;
 
   @override
-  State<MessagesScreen> createState() => _MessagesScreenState();
+  State<ConversationScreen> createState() => _ConversationScreenState();
 }
 
-class _MessagesScreenState extends State<MessagesScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
+class _ConversationScreenState extends State<ConversationScreen> {
+  late ConversationViewModel _viewModel;
 
-  final List<ChatItem> _chats = [
-    ChatItem(
-      id: '1',
-      userName: 'John Doe',
-      username: '@johndoe',
-      lastMessage: 'Is this item still available?',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-      avatarUrl: null,
-      unreadCount: 2,
-    ),
-    ChatItem(
-      id: '2',
-      userName: 'Sarah Wilson',
-      username: '@sarahw',
-      lastMessage: 'Thank you for the quick delivery!',
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      avatarUrl: null,
-      unreadCount: 0,
-    ),
-    ChatItem(
-      id: '3',
-      userName: 'Mike Johnson',
-      username: '@mikej',
-      lastMessage: 'Can you provide more details about this product?',
-      timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      avatarUrl: null,
-      unreadCount: 1,
-    ),
-  ];
+  bool isLoading = true;
 
-  List<ChatItem> get _filteredChats {
-    if (_searchQuery.isEmpty) {
-      return _chats;
-    }
-    return _chats.where((chat) {
-      return chat.userName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          chat.username.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          chat.lastMessage.toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = ConversationViewModel(widget.store);
+    _viewModel.initialize();
   }
 
   @override
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    return AdaptiveScaffold(
-      backgroundColor: ThemeUtils.getBackgroundColor(context),
-      appBar: _buildAppBar(context, responsive),
-      child: Column(
-        children: [
-          _buildSearchBar(context, responsive),
-          Expanded(child: _buildChatList(context, responsive)),
-        ],
+    return SafeArea(
+      child: AdaptiveScaffold(
+        backgroundColor: ThemeUtils.getBackgroundColor(context),
+        appBar: _buildAppBar(context, responsive),
+        child: Column(
+          children: [
+            _buildSearchBar(context, responsive),
+            Expanded(child: _buildChatList(context, responsive)),
+          ],
+        ),
       ),
     );
   }
@@ -87,17 +58,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     if (responsive.shouldShowNavigationRail) return null;
 
     if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoNavigationBar(
-          backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
-          middle: Text(
-            'Messages',
-            style: CupertinoTheme.of(context).textTheme.navTitleTextStyle,
-          ),
-        );
-      }
-
-      if (Platform.isWindows) {
+      if (Platform.isWindows || Platform.isMacOS || Platform.isIOS) {
         return null;
       }
     }
@@ -139,39 +100,22 @@ class _MessagesScreenState extends State<MessagesScreen> {
             ),
             SizedBox(width: responsive.smallSpacing),
             Expanded(
-              child: TextField(
-                controller: _searchController,
+              child: AdaptiveTextField(
+                controller: _viewModel.controller,
                 onChanged: (value) {
                   setState(() {
-                    _searchQuery = value;
+                    _viewModel.searchQuery = value;
                   });
                 },
-                decoration: InputDecoration(
-                  hintText: 'Search messages...',
-                  hintStyle:
-                      ThemeUtils.getAdaptiveTextStyle(
-                        context,
-                        TextStyleType.body,
-                      )?.copyWith(
-                        color: ThemeUtils.getTextColor(
-                          context,
-                        ).withValues(alpha: 0.5),
-                      ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                style: ThemeUtils.getAdaptiveTextStyle(
-                  context,
-                  TextStyleType.body,
-                ),
+                placeholder: 'Search messages...',
               ),
             ),
-            if (_searchQuery.isNotEmpty)
+            if (_viewModel.searchQuery.isNotEmpty)
               GestureDetector(
                 onTap: () {
-                  _searchController.clear();
+                  _viewModel.controller.clear();
                   setState(() {
-                    _searchQuery = '';
+                    _viewModel.searchQuery = '';
                   });
                 },
                 child: Icon(
@@ -192,7 +136,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
-    final filteredChats = _filteredChats;
+    final filteredChats = _viewModel.filteredConversation;
 
     if (filteredChats.isEmpty) {
       return _buildEmptyState(context, responsive);
@@ -223,7 +167,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
           ),
           SizedBox(height: responsive.mediumSpacing),
           Text(
-            _searchQuery.isEmpty ? 'No messages yet' : 'No messages found',
+            _viewModel.searchQuery.isEmpty
+                ? 'No messages yet'
+                : 'No messages found',
             style: ThemeUtils.getAdaptiveTextStyle(context, TextStyleType.title)
                 ?.copyWith(
                   color: ThemeUtils.getTextColor(
@@ -233,7 +179,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           ),
           SizedBox(height: responsive.smallSpacing),
           Text(
-            _searchQuery.isEmpty
+            _viewModel.searchQuery.isEmpty
                 ? 'Messages from customers will appear here'
                 : 'Try a different search term',
             style: ThemeUtils.getAdaptiveTextStyle(context, TextStyleType.body)
@@ -252,7 +198,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Widget _buildChatCard(
     BuildContext context,
     ResponsiveBreakpoints responsive,
-    ChatItem chat,
+    Conversation chat,
   ) {
     return Container(
       margin: EdgeInsets.only(bottom: responsive.smallSpacing),
@@ -277,7 +223,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              chat.userName,
+                              chat.buyer.username,
                               style: ThemeUtils.getAdaptiveTextStyle(
                                 context,
                                 TextStyleType.body,
@@ -288,7 +234,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           Row(
                             children: [
                               Text(
-                                _formatTimestamp(chat.timestamp),
+                                _formatTimestamp(chat.updatedAt),
                                 style:
                                     ThemeUtils.getAdaptiveTextStyle(
                                       context,
@@ -299,34 +245,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                       ).withValues(alpha: 0.6),
                                     ),
                               ),
-                              if (chat.unreadCount > 0) ...[
-                                SizedBox(width: responsive.smallSpacing),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: ThemeUtils.getPrimaryColor(context),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    chat.unreadCount.toString(),
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
                         ],
                       ),
                       SizedBox(height: 2),
                       Text(
-                        chat.username,
+                        chat.buyer.username,
                         style: ThemeUtils.getAdaptiveTextStyle(
                           context,
                           TextStyleType.caption,
@@ -334,7 +259,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       ),
                       SizedBox(height: responsive.smallSpacing * 0.5),
                       Text(
-                        chat.lastMessage,
+                        chat.latestMessage.content,
                         style:
                             ThemeUtils.getAdaptiveTextStyle(
                               context,
@@ -343,9 +268,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               color: ThemeUtils.getTextColor(
                                 context,
                               ).withValues(alpha: 0.7),
-                              fontWeight: chat.unreadCount > 0
-                                  ? FontWeight.w500
-                                  : FontWeight.normal,
+                              fontWeight: FontWeight.w500,
                             ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -364,7 +287,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Widget _buildAvatar(
     BuildContext context,
     ResponsiveBreakpoints responsive,
-    ChatItem chat,
+    Conversation chat,
   ) {
     const double avatarSize = 48;
 
@@ -379,10 +302,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
           width: 1,
         ),
       ),
-      child: chat.avatarUrl != null
+      child: chat.buyer.attachments != null
           ? ClipOval(
               child: Image.network(
-                chat.avatarUrl!,
+                chat.buyer.attachments!.first.url,
                 fit: BoxFit.cover,
                 width: avatarSize,
                 height: avatarSize,
@@ -419,34 +342,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
     }
   }
 
-  void _openChat(ChatItem chat) {
+  void _openChat(Conversation chat) {
     // TODO: Navigate to individual chat screen
-    debugPrint('Opening chat with ${chat.userName}');
+    debugPrint('Opening chat with ${chat.buyer.username}');
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _viewModel.dispose();
     super.dispose();
   }
-}
-
-class ChatItem {
-  final String id;
-  final String userName;
-  final String username;
-  final String lastMessage;
-  final DateTime timestamp;
-  final String? avatarUrl;
-  final int unreadCount;
-
-  ChatItem({
-    required this.id,
-    required this.userName,
-    required this.username,
-    required this.lastMessage,
-    required this.timestamp,
-    this.avatarUrl,
-    this.unreadCount = 0,
-  });
 }

@@ -8,6 +8,8 @@ import 'package:logger/logger.dart';
 
 import 'package:spotsell/src/data/repositories/auth_repository.dart';
 import 'package:spotsell/src/data/repositories/auth_repository_impl.dart';
+import 'package:spotsell/src/data/repositories/conversation_repository.dart';
+import 'package:spotsell/src/data/repositories/conversation_repository_impl.dart';
 import 'package:spotsell/src/data/repositories/store_repository.dart';
 import 'package:spotsell/src/data/repositories/store_repository_impl.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
@@ -187,6 +189,13 @@ class ServiceLocator {
     // Register StoreRepository as singleton
     registerSingleton<StoreRepository>(
       StoreRepositoryImpl(
+        dio: get<Dio>(),
+        secureStorage: get<SecureStorageService>(),
+      ),
+    );
+
+    registerSingleton<ConversationRepository>(
+      ConversationRepositoryImpl(
         dio: get<Dio>(),
         secureStorage: get<SecureStorageService>(),
       ),

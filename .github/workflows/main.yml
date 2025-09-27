@@ -138,7 +138,12 @@ jobs:
         run: flutter pub get
 
       - name: 🔧 Create environment file
-        run: echo "API=${{ secrets.API_KEY }}" > .env
+        run: |
+          cat > .env << EOF
+          API=${{ secrets.API_KEY }}
+          SENTRY_DNS=${{ secrets.SENTRY_DNS }}
+          ENVIRONMENT=${{ secrets.ENVIRONMENT }}
+          EOF
 
       - name: 🗃️ Generate environment configuration
         run: dart run build_runner build

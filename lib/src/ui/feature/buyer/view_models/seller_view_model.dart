@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 
-class BuyerViewModel extends BaseViewModel {
+class SellerViewModel extends BaseViewModel {
   late TabController tabController;
   final TextEditingController searchController = TextEditingController();
 

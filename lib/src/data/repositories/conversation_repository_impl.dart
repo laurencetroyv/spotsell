@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 
@@ -14,7 +16,7 @@ class ConversationRepositoryImpl implements ConversationRepository {
   final Dio _dio;
   final SecureStorageService _secureStorage;
   final Logger _logger = Logger(
-    output: Env.ENVIRONMENT == 'production'
+    output: Env.ENVIRONMENT == 'production' && !kIsWeb
         ? getService<LoggerService>()
         : null,
   );

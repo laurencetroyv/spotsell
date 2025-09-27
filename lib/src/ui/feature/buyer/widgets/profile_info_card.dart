@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:fluent_ui/fluent_ui.dart' as fl;
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
+import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
-import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/auth_request.dart';
 import 'package:spotsell/src/data/entities/store_request.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
@@ -19,6 +19,7 @@ import 'package:spotsell/src/ui/feature/buyer/utils/profile_dialog_utils.dart';
 import 'package:spotsell/src/ui/feature/buyer/utils/store_dialog_utils.dart';
 import 'package:spotsell/src/ui/feature/buyer/view_models/profile_view_model.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_button.dart';
+import 'package:spotsell/src/ui/shared/widgets/role_badge.dart';
 
 class ProfileInfoCard extends StatefulWidget {
   const ProfileInfoCard({
@@ -41,8 +42,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
   late AuthUser? _user;
   late ProfileViewModel _viewModel;
 
-  bool _isLoading = false;
-
   @override
   void initState() {
     super.initState();
@@ -56,9 +55,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
     final responsive = ResponsiveBreakpoints.of(context);
 
     final isVerified = _user?.verifiedAt != null;
-    final hasRoles = _user?.role?.isNotEmpty ?? false;
-    final primaryRole = hasRoles ? _user!.role!.first : 'buyer';
-
     return Container(
       padding: EdgeInsets.all(responsive.largeSpacing),
       decoration: BoxDecoration(
@@ -181,7 +177,7 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
                     ),
                   ),
                   SizedBox(width: responsive.smallSpacing),
-                  _buildRoleBadge(primaryRole),
+                  RoleBadge('buyer'),
                 ],
               ),
 
@@ -308,6 +304,7 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
                 ),
               ),
               SizedBox(width: responsive.mediumSpacing),
+
               Expanded(
                 child: AdaptiveButton(
                   onPressed: _handleBecomeSellerOrManageStore,
@@ -346,34 +343,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
     );
   }
 
-  Widget _buildRoleBadge(String role) {
-    final roleData = _getRoleData(role);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: roleData['color'].withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: roleData['color'].withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(roleData['icon'], size: 12, color: roleData['color']),
-          const SizedBox(width: 4),
-          Text(
-            roleData['label'],
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: roleData['color'],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildStatsRow(ResponsiveBreakpoints responsive) {
     final joinded = DateFormat('MMM. dd, yyyy').format(_user!.createdAt);
 
@@ -405,6 +374,7 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
                   Expanded(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
                           stat['value']!,
@@ -467,7 +437,7 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
 
   Future<void> _handleBecomeSellerOrManageStore() async {
     if (_authService.isSeller) {
-      // Navigate to seller UI
+      context.pushNamed(RouteNames.manageStores);
     } else {
       // Show create store dialog to become a seller
       await _showCreateStoreDialog();
@@ -591,142 +561,8 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
     );
   }
 
-  // Optional: Add a method to handle profile picture update separately
-  Future<void> _handleUpdateProfilePicture() async {
-    if (_user == null) return;
-
-    try {
-      await ProfileDialogUtils.showProfilePictureOptions(
-        context,
-        hasExistingPicture: _user!.attachments?.isNotEmpty == true,
-        onCamera: () => _updateProfilePictureFromCamera(),
-        onGallery: () => _updateProfilePictureFromGallery(),
-        onRemove: () => _removeProfilePicture(),
-      );
-    } catch (e) {
-      debugPrint('Error showing profile picture options: $e');
-      _viewModel.showErrorMessage(
-        'Failed to open picture options. Please try again.',
-      );
-    }
-  }
-
-  // Helper methods for profile picture updates
-  Future<void> _updateProfilePictureFromCamera() async {
-    await _updateProfilePictureFromSource(ImageSource.camera);
-  }
-
-  Future<void> _updateProfilePictureFromGallery() async {
-    await _updateProfilePictureFromSource(ImageSource.gallery);
-  }
-
-  Future<void> _updateProfilePictureFromSource(ImageSource source) async {
-    try {
-      final ImagePicker imagePicker = ImagePicker();
-      final XFile? pickedFile = await imagePicker.pickImage(
-        source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        final File imageFile = File(pickedFile.path);
-
-        // Show loading indicator
-        setState(() => _isLoading = true);
-
-        final result = await _authService.updateProfile(
-          profilePicture: imageFile,
-        );
-
-        setState(() => _isLoading = false);
-
-        switch (result) {
-          case Ok<AuthUser>():
-            setState(() {
-              _user = result.value;
-            });
-            _viewModel.showSuccessMessage(
-              'Profile picture updated successfully!',
-            );
-            break;
-          case Error<AuthUser>():
-            _viewModel.showErrorMessage(
-              'Failed to update profile picture: ${result.error}',
-            );
-            break;
-        }
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
-      debugPrint('Error updating profile picture: $e');
-      _viewModel.showErrorMessage(
-        'Failed to update profile picture. Please try again.',
-      );
-    }
-  }
-
-  Future<void> _removeProfilePicture() async {
-    try {
-      // Show loading indicator
-      setState(() => _isLoading = true);
-
-      final result = await _authService.updateProfile(
-        profilePicture: null, // This should remove the profile picture
-      );
-
-      setState(() => _isLoading = false);
-
-      switch (result) {
-        case Ok<AuthUser>():
-          setState(() {
-            _user = result.value;
-          });
-          _viewModel.showSuccessMessage(
-            'Profile picture removed successfully!',
-          );
-          break;
-        case Error<AuthUser>():
-          _viewModel.showErrorMessage(
-            'Failed to remove profile picture: ${result.error}',
-          );
-          break;
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
-      debugPrint('Error removing profile picture: $e');
-      _viewModel.showErrorMessage(
-        'Failed to remove profile picture. Please try again.',
-      );
-    }
-  }
-
   void _handleVerification() {
     // TODO: Navigate to verification screen
     debugPrint('Verification tapped');
-  }
-
-  Map<String, dynamic> _getRoleData(String role) {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return {
-          'label': 'Admin',
-          'icon': Icons.admin_panel_settings,
-          'color': Colors.purple.shade600,
-        };
-      case 'seller':
-        return {
-          'label': 'Seller',
-          'icon': Icons.store,
-          'color': Colors.blue.shade600,
-        };
-      default:
-        return {
-          'label': 'Buyer',
-          'icon': Icons.shopping_bag,
-          'color': Colors.green.shade600,
-        };
-    }
   }
 }

@@ -1,16 +1,22 @@
 import 'package:dio/dio.dart';
 import 'package:logger/web.dart';
 
+import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/utils/env.dart';
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/store_request.dart';
 import 'package:spotsell/src/data/repositories/store_repository.dart';
+import 'package:spotsell/src/data/services/logger_service.dart';
 import 'package:spotsell/src/data/services/secure_storage_service.dart';
 
 class StoreRepositoryImpl implements StoreRepository {
   final Dio _dio;
   final SecureStorageService _secureStorage;
-  final Logger _logger = Logger();
+  final Logger _logger = Logger(
+    output: Env.ENVIRONMENT == 'production'
+        ? getService<LoggerService>()
+        : null,
+  );
 
   /// API Endpoints
   static const String _publicStoresEndpoint = '/stores';
@@ -63,7 +69,10 @@ class StoreRepositoryImpl implements StoreRepository {
     try {
       _logger.i('Fetching all public stores');
 
-      final response = await _dio.get(_publicStoresEndpoint);
+      final response = await _dio.get(
+        _publicStoresEndpoint,
+        queryParameters: {"show_all": 1},
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> storesData = response.data['data'] ?? response.data;
@@ -124,7 +133,10 @@ class StoreRepositoryImpl implements StoreRepository {
     try {
       _logger.i('Fetching seller stores');
 
-      final response = await _dio.get(_sellerStoresEndpoint);
+      final response = await _dio.get(
+        _sellerStoresEndpoint,
+        queryParameters: {"show_all": 1},
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> storesData = response.data['data'] ?? response.data;

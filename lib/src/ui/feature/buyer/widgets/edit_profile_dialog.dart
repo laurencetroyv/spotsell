@@ -934,23 +934,35 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       _errorMessage = null;
     });
 
+    final firstName = _firstNameController.text;
+    final lastName = _lastNameController.text;
+    final username = _usernameController.text;
+    final email = widget.user.email;
+    final phone = widget.user.phone;
+    final dateOfBirth = _selectedDateOfBirth ?? widget.user.dateOfBirth;
+    final gender = _gender != null
+        ? _gender!
+              ? 'Male'
+              : 'Female'
+        : widget.user.gender;
+
+    final attachments = _newProfilePicture != null
+        ? [_newProfilePicture!]
+        : null;
+
     try {
-      final result = await _authService.updateProfile(
-        firstName: _firstNameController.text.trim().isEmpty
-            ? null
-            : _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim().isEmpty
-            ? null
-            : _lastNameController.text.trim(),
-        username: _usernameController.text.trim().isEmpty
-            ? null
-            : _usernameController.text.trim(),
-        dateOfBirth: _selectedDateOfBirth,
-        email: widget.user.email,
-        phone: widget.user.phone,
-        gender: _gender == null ? null : (_gender! ? 'Male' : 'Female'),
-        profilePicture: _hasProfilePictureChanged ? _newProfilePicture : null,
+      final user = UpdateUserRequest(
+        firstName: firstName,
+        lastName: lastName,
+        username: username,
+        email: email,
+        phone: phone,
+        dateOfBirth: dateOfBirth,
+        gender: gender,
+        attachments: attachments,
       );
+
+      final result = await _authService.updateProfile(user);
 
       switch (result) {
         case Ok<AuthUser>():

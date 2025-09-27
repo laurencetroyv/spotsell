@@ -41,9 +41,11 @@ jobs:
           PR_DESCRIPTION="${{ github.event.pull_request.body }}"
 
           echo "title=$PR_TITLE" >> $GITHUB_OUTPUT
-          echo "description<<EOF" >> $GITHUB_OUTPUT
-          echo "$PR_DESCRIPTION" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "description<<EOF"
+            echo "$PR_DESCRIPTION"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: 🏷️ Generate tag name from PR title
         id: tag
@@ -73,24 +75,37 @@ jobs:
             COMMITS=$(git log --pretty=format:"• %s (%h)" "$LAST_TAG"..HEAD)
           else
             # If no previous tags, get all commits in PR
-            COMMITS=$(git log --pretty=format:"• %s (%h)" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+            COMMITS=$(git log --pretty=format:"• %s (%h)" "${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}")
           fi
 
-          echo "messages<<EOF" >> $GITHUB_OUTPUT
-          echo "$COMMITS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Use heredoc to safely handle special characters
+          {
+            echo "messages<<EOF_COMMITS"
+            echo "$COMMITS"
+            echo "EOF_COMMITS"
+          } >> $GITHUB_OUTPUT
 
       - name: 🏷️ Create tag
         run: |
           TAG_NAME="${{ steps.tag.outputs.tag_name }}"
-          COMMIT_MESSAGES="${{ steps.commits.outputs.messages }}"
-
+          
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Create annotated tag with commit messages as description
-          git tag -a "$TAG_NAME" -m "Release $TAG_NAME" -m "" -m "$COMMIT_MESSAGES"
+          # Use a temporary file to handle special characters safely
+          TEMP_FILE=$(mktemp)
+          cat > "$TEMP_FILE" << 'EOF_TAG_MESSAGE'
+          Release ${{ steps.tag.outputs.tag_name }}
+          
+          ${{ steps.commits.outputs.messages }}
+          EOF_TAG_MESSAGE
+          
+          git tag -a "$TAG_NAME" -F "$TEMP_FILE"
           git push origin "$TAG_NAME"
+          
+          # Clean up temp file
+          rm "$TEMP_FILE"
 
   build_android:
     needs: check_merged
@@ -125,10 +140,10 @@ jobs:
       - name: 🔧 Create environment file
         run: echo "API=${{ secrets.API_KEY }}" > .env
 
-      - name: 🏗️ Generate environment configuration
+      - name: 🗃️ Generate environment configuration
         run: dart run build_runner build
 
-      - name: 🏗️ Build APKs
+      - name: 🗃️ Build APKs
         run: flutter build apk --release
 
       - name: 📦 Prepare Android artifacts
@@ -169,10 +184,10 @@ jobs:
       - name: 🔧 Create environment file
         run: echo "API=${{ secrets.API_KEY }}" > .env
 
-      - name: 🏗️ Generate environment configuration
+      - name: 🗃️ Generate environment configuration
         run: dart run build_runner build
 
-      - name: 🏗️ Build Web
+      - name: 🗃️ Build Web
         run: flutter build web --release
 
       - name: 📦 Prepare web artifacts
@@ -213,10 +228,10 @@ jobs:
       - name: 🔧 Create environment file
         run: echo "API=${{ secrets.API_KEY }}" > .env
 
-      - name: 🏗️ Generate environment configuration
+      - name: 🗃️ Generate environment configuration
         run: dart run build_runner build
 
-      - name: 🏗️ Build iOS
+      - name: 🗃️ Build iOS
         run: flutter build ios --release --no-codesign
 
       - name: 📦 Prepare iOS artifacts
@@ -257,10 +272,10 @@ jobs:
       - name: 🔧 Create environment file
         run: echo "API=${{ secrets.API_KEY }}" > .env
 
-      - name: 🏗️ Generate environment configuration
+      - name: 🗃️ Generate environment configuration
         run: dart run build_runner build
 
-      - name: 🏗️ Build macOS
+      - name: 🗃️ Build macOS
         run: flutter build macos --release
 
       - name: 📦 Prepare macOS artifacts
@@ -301,10 +316,10 @@ jobs:
       - name: 🔧 Create environment file
         run: echo "API=${{ secrets.API_KEY }}" > .env
 
-      - name: 🏗️ Generate environment configuration
+      - name: 🗃️ Generate environment configuration
         run: dart run build_runner build
 
-      - name: 🏗️ Build Windows
+      - name: 🗃️ Build Windows
         run: flutter build windows --release
 
       - name: 📦 Prepare Windows artifacts

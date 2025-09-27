@@ -24,6 +24,8 @@ class AdaptiveScaffold extends StatelessWidget {
     this.extendBody = false,
     this.extendBodyBehindAppBar = false,
     this.signOut,
+    this.isLoading,
+    this.parentHasBottomNavigationBar = false,
   });
 
   final Widget child;
@@ -39,6 +41,8 @@ class AdaptiveScaffold extends StatelessWidget {
   final bool extendBody;
   final bool extendBodyBehindAppBar;
   final VoidCallback? signOut;
+  final bool? isLoading;
+  final bool? parentHasBottomNavigationBar;
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +65,12 @@ class AdaptiveScaffold extends StatelessWidget {
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
+    if (isLoading != null && isLoading!) {
+      return CupertinoPageScaffold(
+        child: Center(child: CupertinoActivityIndicator()),
+      );
+    }
+
     // For Cupertino, we need to handle navigation differently
     if (responsive.shouldShowNavigationRail && navigationRail != null) {
       return CupertinoPageScaffold(
@@ -112,6 +122,16 @@ class AdaptiveScaffold extends StatelessWidget {
       );
     }
 
+    late double floatingActionButtonHeight;
+
+    if (parentHasBottomNavigationBar != null || bottomNavigationBar != null) {
+      floatingActionButtonHeight = kBottomNavigationBarHeight;
+    } else if (bottomNavigationBar != null) {
+      floatingActionButtonHeight = responsive.verticalPadding;
+    } else {
+      floatingActionButtonHeight = 0;
+    }
+
     return CupertinoPageScaffold(
       backgroundColor: backgroundColor,
       navigationBar: appBar != null
@@ -129,28 +149,26 @@ class AdaptiveScaffold extends StatelessWidget {
             )
           : null,
       resizeToAvoidBottomInset: resizeToAvoidBottomInset ?? true,
-      child: Stack(
-        children: [
-          child,
-          if (floatingActionButton != null)
-            Positioned(
-              right: responsive.horizontalPadding,
-              bottom:
-                  responsive.verticalPadding +
-                  (bottomNavigationBar != null
-                      ? kBottomNavigationBarHeight
-                      : 0),
-              child: floatingActionButton!,
-            ),
-          if (bottomNavigationBar != null)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: bottomNavigationBar!,
-            ),
-        ],
-      ),
+      child: (floatingActionButton != null || bottomNavigationBar != null)
+          ? Stack(
+              children: [
+                child,
+                if (floatingActionButton != null)
+                  Positioned(
+                    right: responsive.horizontalPadding,
+                    bottom: floatingActionButtonHeight,
+                    child: floatingActionButton!,
+                  ),
+                if (bottomNavigationBar != null)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: bottomNavigationBar!,
+                  ),
+              ],
+            )
+          : child,
     );
   }
 
@@ -158,6 +176,13 @@ class AdaptiveScaffold extends StatelessWidget {
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
+    if (isLoading != null && isLoading!) {
+      return fl.ScaffoldPage(
+        padding: EdgeInsets.zero,
+        content: Center(child: fl.ProgressRing()),
+      );
+    }
+
     // For Fluent UI, use ScaffoldPage with NavigationView if navigation is needed
     if (navigationRail != null) {
       return fl.NavigationView(
@@ -255,6 +280,10 @@ class AdaptiveScaffold extends StatelessWidget {
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
+    if (isLoading != null && isLoading!) {
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     // For Material, use standard Scaffold with responsive navigation
     if (responsive.shouldShowNavigationRail && navigationRail != null) {
       return Scaffold(

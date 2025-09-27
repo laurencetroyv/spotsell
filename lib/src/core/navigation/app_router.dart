@@ -12,11 +12,14 @@ import 'package:spotsell/src/data/entities/user_role.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/feature/admin/admin_screen.dart';
 import 'package:spotsell/src/ui/feature/buyer/buyer_screen.dart';
+import 'package:spotsell/src/ui/feature/buyer/pages/manage_store_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/sign_in/sign_in_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/sign_up/sign_up_screen.dart';
 import 'package:spotsell/src/ui/feature/guests/welcome/welcome_screen.dart';
 import 'package:spotsell/src/ui/feature/navigation_guard.dart';
+import 'package:spotsell/src/ui/feature/seller/pages/add_product_screen.dart';
 import 'package:spotsell/src/ui/feature/seller/seller_screen.dart';
+import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 
 /// Central router configuration for the application
 /// Handles platform-aware route generation, navigation transitions, and authentication guards
@@ -99,39 +102,19 @@ class AppRouter {
   ) {
     switch (routeName) {
       case RouteNames.home:
-        // Home route uses AuthGuard to determine appropriate screen
         return const NavigationGuard();
 
-      case RouteNames.buyer:
-        return const BuyerScreen();
+      case RouteNames.manageStores:
+        return const ManageStoresScreen();
 
       case RouteNames.seller:
-        // Check if user has seller role
-        if (!authService.isSeller) {
-          return _UnauthorizedScreen(
-            requiredRole: 'Seller',
-            message: 'You need seller permissions to access this area.',
-          );
-        }
         return const SellerScreen();
 
-      case RouteNames.admin:
-        // Check if user has admin role
-        if (!authService.isAdmin) {
-          return _UnauthorizedScreen(
-            requiredRole: 'Admin',
-            message: 'You need administrator permissions to access this area.',
-          );
-        }
-        return const AdminScreen();
-
-      // TODO: Add other authenticated routes like profile, settings
-      case RouteNames.profile:
-      case RouteNames.settings:
-        return _ComingSoonScreen(routeName: routeName);
+      case RouteNames.addProduct:
+        return const AddProductScreen();
 
       default:
-        return null;
+        return _ComingSoonScreen(routeName: routeName);
     }
   }
 
@@ -140,9 +123,7 @@ class AppRouter {
     switch (role) {
       case UserRole.admin:
         return const AdminScreen();
-      case UserRole.seller:
-        return const SellerScreen();
-      case UserRole.buyer:
+      default:
         return const BuyerScreen();
     }
   }
@@ -291,9 +272,9 @@ class _ErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AdaptiveScaffold(
       appBar: AppBar(title: const Text('Error')),
-      body: Center(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

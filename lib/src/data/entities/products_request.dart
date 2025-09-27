@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
+
+import 'package:spotsell/src/data/entities/attachments_entity.dart';
 import 'package:spotsell/src/data/entities/meta_request.dart';
 import 'package:spotsell/src/data/entities/store_request.dart';
 
@@ -132,7 +135,7 @@ class ProductsMeta extends Meta {
 
 class ProductsRequest extends Product {
   final List<int>? categories;
-  final List<File>? attachments;
+  final List<MultipartFile>? attachments;
 
   ProductsRequest({
     required super.id,

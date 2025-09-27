@@ -8,6 +8,7 @@ import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
+import 'package:spotsell/src/data/entities/attachments_entity.dart';
 import 'package:spotsell/src/data/entities/products_request.dart';
 import 'package:spotsell/src/data/entities/store_request.dart';
 import 'package:spotsell/src/ui/feature/seller/view_models/add_products_view_model.dart';
@@ -614,16 +615,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   Widget _buildImageTile(BuildContext context, int index, double size) {
+    final imageData = _viewModel.attachments[index];
+
     return Stack(
       children: [
         ClipRRect(
           borderRadius: ThemeUtils.getAdaptiveBorderRadius(context),
-          child: Image.file(
-            _viewModel.attachments[index],
-            width: size,
-            height: size,
-            fit: BoxFit.cover,
-          ),
+          child: _buildAdaptiveImage(imageData, size),
         ),
         if (!_viewModel.isLoading)
           Positioned(
@@ -647,7 +645,87 @@ class _AddProductScreenState extends State<AddProductScreen> {
               ),
             ),
           ),
+        // Optional: Show file size indicator
+        if (!_viewModel.isLoading)
+          Positioned(
+            bottom: 4,
+            left: 4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                _formatFileSize(imageData.size),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
       ],
+    );
+  }
+
+  Widget _buildAdaptiveImage(ImageData imageData, double size) {
+    if (kIsWeb) {
+      // For web, use Image.memory with bytes
+      if (imageData.bytes != null) {
+        return Image.memory(
+          imageData.bytes!,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildImageErrorPlaceholder(size);
+          },
+        );
+      }
+    } else {
+      // For native platforms, use Image.file
+      if (imageData.file != null) {
+        return Image.file(
+          imageData.file!,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildImageErrorPlaceholder(size);
+          },
+        );
+      }
+    }
+
+    // Fallback for invalid image data
+    return _buildImageErrorPlaceholder(size);
+  }
+
+  Widget _buildImageErrorPlaceholder(double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: ThemeUtils.getAdaptiveBorderRadius(context),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.broken_image,
+            color: Colors.grey.shade600,
+            size: size * 0.3,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Error',
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 10),
+          ),
+        ],
+      ),
     );
   }
 
@@ -763,5 +841,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
             color: ThemeUtils.getTextColor(context),
           ),
     );
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '${bytes}B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)}KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB';
   }
 }

@@ -71,24 +71,13 @@ class ProductRepositoryImpl implements ProductRepository {
     try {
       _logger.i('Creating product');
 
-      FormData formData;
+      final data = request.toJson();
 
       if (request.attachments != null && request.attachments!.isNotEmpty) {
-        final data = request.toJson();
-
-        final attachmentFiles = <MultipartFile>[];
-        for (final file in request.attachments!) {
-          final fileName = file.path.split('/').last;
-          attachmentFiles.add(
-            await MultipartFile.fromFile(file.path, filename: fileName),
-          );
-        }
-
-        data['attachments[]'] = attachmentFiles;
-        formData = FormData.fromMap(data);
-      } else {
-        formData = FormData.fromMap(request.toJson());
+        data['attachments[]'] = request.attachments!;
       }
+
+      final formData = FormData.fromMap(data);
 
       final response = await _dio.post(
         createProducts,

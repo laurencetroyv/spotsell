@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 
@@ -13,7 +15,7 @@ class ProductRepositoryImpl implements ProductRepository {
   final Dio _dio;
   final SecureStorageService _secureStorage;
   final Logger _logger = Logger(
-    output: Env.ENVIRONMENT == 'production'
+    output: Env.ENVIRONMENT == 'production' && !kIsWeb
         ? getService<LoggerService>()
         : null,
   );
@@ -86,7 +88,7 @@ class ProductRepositoryImpl implements ProductRepository {
       );
 
       if (response.statusCode == 201) {
-        final product = Product.fromJson(response.data);
+        final product = Product.fromJson(response.data['data']);
         return Result.ok(product);
       } else {
         return Result.error(Exception('Failed to create product'));
@@ -167,6 +169,7 @@ class ProductRepositoryImpl implements ProductRepository {
           'filter_by_status': request.filterByStatus!
               .map((s) => s.name)
               .join(','),
+        if (request.storeId != null) 'store_id': request.storeId,
       };
 
       final response = await _dio.get(

@@ -20,7 +20,7 @@ class AuthService extends ChangeNotifier {
   final SecureStorageService _secureStorage;
 
   final Logger _logger = Logger(
-    output: Env.ENVIRONMENT == 'production'
+    output: Env.ENVIRONMENT == 'production' && !kIsWeb
         ? getService<LoggerService>()
         : null,
   );

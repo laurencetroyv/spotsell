@@ -10,6 +10,8 @@ import 'package:spotsell/src/data/repositories/auth_repository.dart';
 import 'package:spotsell/src/data/repositories/auth_repository_impl.dart';
 import 'package:spotsell/src/data/repositories/conversation_repository.dart';
 import 'package:spotsell/src/data/repositories/conversation_repository_impl.dart';
+import 'package:spotsell/src/data/repositories/product_repository.dart';
+import 'package:spotsell/src/data/repositories/product_repository_impl.dart';
 import 'package:spotsell/src/data/repositories/store_repository.dart';
 import 'package:spotsell/src/data/repositories/store_repository_impl.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
@@ -196,6 +198,13 @@ class ServiceLocator {
 
     registerSingleton<ConversationRepository>(
       ConversationRepositoryImpl(
+        dio: get<Dio>(),
+        secureStorage: get<SecureStorageService>(),
+      ),
+    );
+
+    registerSingleton<ProductRepository>(
+      ProductRepositoryImpl(
         dio: get<Dio>(),
         secureStorage: get<SecureStorageService>(),
       ),

@@ -247,7 +247,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
             }
           },
           displayText: (condition) => Product(
-            id: '',
             title: '',
             description: '',
             price: '',
@@ -281,7 +280,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
             }
           },
           displayText: (status) => Product(
-            id: '',
             title: '',
             description: '',
             price: '',

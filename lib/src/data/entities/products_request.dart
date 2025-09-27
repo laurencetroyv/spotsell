@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 
-import 'package:spotsell/src/data/entities/attachments_entity.dart';
 import 'package:spotsell/src/data/entities/meta_request.dart';
 import 'package:spotsell/src/data/entities/store_request.dart';
 
@@ -11,7 +8,7 @@ enum Condition { superNew, likeNew, good, fair, poor }
 enum Status { available, solid, reserved, hidden }
 
 class Product {
-  final String id;
+  final int? id;
   final String title;
   final String description;
   final String price;
@@ -22,7 +19,7 @@ class Product {
   final DateTime updatedAt;
 
   const Product({
-    required this.id,
+    this.id,
     required this.title,
     required this.description,
     required this.price,
@@ -39,11 +36,11 @@ class Product {
       title: json['title'],
       description: json['description'],
       price: json['price'],
-      condition: json['condition'],
-      status: json['status'],
-      store: Store.fromJson(json['store']),
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
+      condition: getCondition(json['condition']),
+      status: getStatus(json['status']),
+      store: json['store'] != null ? Store.fromJson(json['store']) : null,
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
     );
   }
 
@@ -58,6 +55,21 @@ class Product {
       "created_at": createdAt.toIso8601String(),
       "updated_at": updatedAt.toIso8601String(),
     };
+  }
+
+  static Condition getCondition(String condition) {
+    switch (condition) {
+      case 'new':
+        return Condition.superNew;
+      case 'like_new':
+        return Condition.likeNew;
+      case 'good':
+        return Condition.good;
+      case 'fair':
+        return Condition.fair;
+      default:
+        return Condition.poor;
+    }
   }
 
   String get conditions {
@@ -87,6 +99,19 @@ class Product {
         return 'Fair';
       case Condition.poor:
         return 'Poor';
+    }
+  }
+
+  static Status getStatus(String status) {
+    switch (status) {
+      case 'available':
+        return Status.available;
+      case 'solid':
+        return Status.solid;
+      case 'reserved':
+        return Status.reserved;
+      default:
+        return Status.hidden;
     }
   }
 
@@ -120,6 +145,7 @@ class Product {
 class ProductsMeta extends Meta {
   final List<Condition>? filterByCondition;
   final List<Status>? filterByStatus;
+  final int? storeId;
 
   ProductsMeta({
     super.page,
@@ -130,6 +156,7 @@ class ProductsMeta extends Meta {
     super.sortOrder,
     this.filterByCondition,
     this.filterByStatus,
+    this.storeId,
   });
 }
 
@@ -138,7 +165,7 @@ class ProductsRequest extends Product {
   final List<MultipartFile>? attachments;
 
   ProductsRequest({
-    required super.id,
+    super.id,
     required super.title,
     required super.description,
     required super.price,

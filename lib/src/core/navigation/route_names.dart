@@ -13,6 +13,8 @@ class RouteNames {
   static const String admin = '/admin';
   static const String profile = '/profile';
   static const String settings = '/settings';
+  static const String manageStores = '/manage-store';
+  static const String addProduct = '/add-product';
 
   static const List<String> allRoutes = [
     welcome,
@@ -24,11 +26,22 @@ class RouteNames {
     admin,
     profile,
     settings,
+    manageStores,
+    addProduct,
   ];
 
   // Helper method to check if route requires authentication
   static bool requiresAuth(String routeName) {
-    const authRequiredRoutes = [home, buyer, seller, admin, profile, settings];
+    const authRequiredRoutes = [
+      home,
+      buyer,
+      seller,
+      admin,
+      profile,
+      settings,
+      manageStores,
+      addProduct,
+    ];
     return authRequiredRoutes.contains(routeName);
   }
 

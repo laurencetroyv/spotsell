@@ -4,10 +4,13 @@ import 'package:flutter/foundation.dart';
 
 import 'package:logger/web.dart';
 
+import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
+import 'package:spotsell/src/core/utils/env.dart';
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/auth_request.dart';
 import 'package:spotsell/src/data/entities/user_role.dart';
 import 'package:spotsell/src/data/repositories/auth_repository.dart';
+import 'package:spotsell/src/data/services/logger_service.dart';
 import 'package:spotsell/src/data/services/secure_storage_service.dart';
 
 /// Service responsible for managing user authentication state and session
@@ -15,7 +18,12 @@ import 'package:spotsell/src/data/services/secure_storage_service.dart';
 class AuthService extends ChangeNotifier {
   final AuthRepository _authRepository;
   final SecureStorageService _secureStorage;
-  final Logger _logger = Logger();
+
+  final Logger _logger = Logger(
+    output: Env.ENVIRONMENT == 'production'
+        ? getService<LoggerService>()
+        : null,
+  );
 
   AuthUser? _currentUser;
   bool _isInitialized = false;
@@ -227,16 +235,7 @@ class AuthService extends ChangeNotifier {
   }
 
   /// Update user profile using AuthRepository
-  Future<Result<AuthUser>> updateProfile({
-    String? firstName,
-    String? lastName,
-    String? username,
-    String? email,
-    String? phone,
-    DateTime? dateOfBirth,
-    String? gender,
-    File? profilePicture,
-  }) async {
+  Future<Result<AuthUser>> updateProfile(UpdateUserRequest request) async {
     if (!isAuthenticated) {
       return Result.error(Exception('User not authenticated'));
     }
@@ -245,16 +244,7 @@ class AuthService extends ChangeNotifier {
 
     try {
       // Use your existing AuthRepository for profile update
-      final result = await _authRepository.updateProfile(
-        firstName,
-        lastName,
-        username,
-        email,
-        phone,
-        dateOfBirth,
-        gender,
-        profilePicture,
-      );
+      final result = await _authRepository.updateProfile(request);
 
       switch (result) {
         case Ok<AuthUser>():
@@ -264,6 +254,32 @@ class AuthService extends ChangeNotifier {
           return Result.ok(result.value);
         case Error<AuthUser>():
           _logger.w('Profile update failed: ${result.error}');
+          return Result.error(result.error);
+      }
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<Result<AuthUser>> updateProfilePicture(File request) async {
+    if (!isAuthenticated) {
+      return Result.error(Exception('User not authenticated'));
+    }
+
+    _setLoading(true);
+
+    try {
+      // Use your existing AuthRepository for profile update
+      final result = await _authRepository.updateProfilePicture(request);
+
+      switch (result) {
+        case Ok<AuthUser>():
+          _currentUser = result.value;
+          notifyListeners(); // Notify UI about state change
+          _logger.i('Profile picture updated successfully');
+          return Result.ok(result.value);
+        case Error<AuthUser>():
+          _logger.w('Profile picture update failed: ${result.error}');
           return Result.error(result.error);
       }
     } finally {

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:spotsell/src/data/entities/attachments_entity.dart';
+
 class SignInRequest {
   final String email, password;
 
@@ -46,27 +48,31 @@ class SignUpRequest {
   };
 }
 
-class Attachment {
-  String id, originalName, mimeType, url;
-  int fileSize;
+class UpdateUserRequest {
+  final String firstName, lastName, username, email, gender, phone;
+  final DateTime dateOfBirth;
+  final List<File>? attachments;
 
-  Attachment({
-    required this.id,
-    required this.originalName,
-    required this.mimeType,
-    required this.url,
-    required this.fileSize,
+  const UpdateUserRequest({
+    required this.firstName,
+    required this.lastName,
+    required this.username,
+    required this.email,
+    required this.phone,
+    required this.dateOfBirth,
+    required this.gender,
+    this.attachments,
   });
 
-  factory Attachment.fromJson(Map<String, dynamic> json) {
-    return Attachment(
-      id: json['id'],
-      originalName: json['originalName'],
-      mimeType: json['mimeType'],
-      url: json['url'],
-      fileSize: json['fileSize'],
-    );
-  }
+  Map<String, dynamic> toJson() => {
+    'first_name': firstName,
+    'last_name': lastName,
+    'username': username,
+    'email': email,
+    'gender': gender,
+    'date_of_birth': dateOfBirth.toIso8601String(),
+    'phone': phone,
+  };
 }
 
 class AuthUser {
@@ -127,4 +133,6 @@ class AuthUser {
       updatedAt: DateTime.parse(data['updated_at']),
     );
   }
+
+  String get name => '$firstName $lastName';
 }

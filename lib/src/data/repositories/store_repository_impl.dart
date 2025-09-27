@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:dio/dio.dart';
 import 'package:logger/web.dart';
 
@@ -13,7 +15,7 @@ class StoreRepositoryImpl implements StoreRepository {
   final Dio _dio;
   final SecureStorageService _secureStorage;
   final Logger _logger = Logger(
-    output: Env.ENVIRONMENT == 'production'
+    output: Env.ENVIRONMENT == 'production' && !kIsWeb
         ? getService<LoggerService>()
         : null,
   );

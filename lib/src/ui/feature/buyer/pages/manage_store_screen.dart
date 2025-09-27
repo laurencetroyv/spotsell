@@ -427,21 +427,23 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
       ),
     );
 
-    if (!kIsWeb && Platform.isMacOS || Platform.isIOS) {
-      return Slidable(
-        endActionPane: ActionPane(
-          motion: DrawerMotion(),
-          children: [
-            SlidableAction(
-              onPressed: (context) => _handleDeleteStore(store),
-              icon: Icons.delete,
-              label: 'Delete',
-              backgroundColor: Colors.red,
-            ),
-          ],
-        ),
-        child: card,
-      );
+    if (!kIsWeb) {
+      if (Platform.isMacOS || Platform.isIOS) {
+        return Slidable(
+          endActionPane: ActionPane(
+            motion: DrawerMotion(),
+            children: [
+              SlidableAction(
+                onPressed: (context) => _handleDeleteStore(store),
+                icon: Icons.delete,
+                label: 'Delete',
+                backgroundColor: Colors.red,
+              ),
+            ],
+          ),
+          child: card,
+        );
+      }
     }
 
     return card;

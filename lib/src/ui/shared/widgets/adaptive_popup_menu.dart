@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 
 import 'package:fluent_ui/fluent_ui.dart' as fl;
 
+import 'package:spotsell/src/ui/shared/widgets/adaptive_button.dart';
+
 class AdaptivePopupMenu extends StatelessWidget {
   const AdaptivePopupMenu({
     super.key,
@@ -45,12 +47,32 @@ class AdaptivePopupMenu extends StatelessWidget {
   }
 
   Widget _buildFluentPopupMenu() {
-    return fl.DropDownButton(
-      items: items.map((e) {
-        final item = e as PopupMenuItem;
+    final controller = fl.FlyoutController();
+    return fl.FlyoutTarget(
+      controller: controller,
+      child: AdaptiveButton(
+        type: AdaptiveButtonType.text,
+        onPressed: () {
+          controller.showFlyout(
+            autoModeConfiguration: fl.FlyoutAutoConfiguration(
+              preferredMode: fl.FlyoutPlacementMode.bottomLeft,
+            ),
+            builder: (context) {
+              return fl.MenuFlyout(
+                items: items.map((e) {
+                  final item = e as PopupMenuItem;
 
-        return fl.MenuFlyoutItem(text: item.child!, onPressed: item.onTap);
-      }).toList(),
+                  return fl.MenuFlyoutItem(
+                    text: item.child!,
+                    onPressed: item.onTap,
+                  );
+                }).toList(),
+              );
+            },
+          );
+        },
+        child: child,
+      ),
     );
   }
 

@@ -4,13 +4,12 @@ import 'package:logger/logger.dart';
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/utils/env.dart';
 import 'package:spotsell/src/core/utils/result.dart';
-import 'package:spotsell/src/data/entities/messages_request.dart';
-import 'package:spotsell/src/data/entities/meta_request.dart';
-import 'package:spotsell/src/data/repositories/conversation_repository.dart';
+import 'package:spotsell/src/data/entities/products_request.dart';
+import 'package:spotsell/src/data/repositories/product_repository.dart';
 import 'package:spotsell/src/data/services/logger_service.dart';
 import 'package:spotsell/src/data/services/secure_storage_service.dart';
 
-class ConversationRepositoryImpl implements ConversationRepository {
+class ProductRepositoryImpl implements ProductRepository {
   final Dio _dio;
   final SecureStorageService _secureStorage;
   final Logger _logger = Logger(
@@ -19,7 +18,7 @@ class ConversationRepositoryImpl implements ConversationRepository {
         : null,
   );
 
-  ConversationRepositoryImpl({
+  ProductRepositoryImpl({
     required Dio dio,
     required SecureStorageService secureStorage,
   }) : _dio = dio,
@@ -61,157 +60,95 @@ class ConversationRepositoryImpl implements ConversationRepository {
     );
   }
 
-  static const String _buyerConversations = '/buyer/conversations';
+  static final String listAllProducts = '/products';
 
-  static const String _sellerConversations = '/seller/conversations';
+  static final String createProducts = '/seller/products';
+  static final String updateProducts = '/seller/products';
+  static final String deleteProducts = '/seller/products';
 
   @override
-  Future<Result<Conversation>> createBuyerConversation(
-    ConversationRequest request,
-  ) async {
+  Future<Result<Product>> createProduct(ProductsRequest request) async {
     try {
-      _logger.i('Creating buyer conversation');
+      _logger.i('Creating product');
+
+      final data = request.toJson();
+
+      if (request.attachments != null && request.attachments!.isNotEmpty) {
+        data['attachments[]'] = request.attachments!;
+      }
+
+      final formData = FormData.fromMap(data);
 
       final response = await _dio.post(
-        _buyerConversations,
-        data: request.toJson(),
+        createProducts,
+        data: formData,
+        options: Options(headers: {'Content-Type': 'multipart/form-data'}),
       );
 
       if (response.statusCode == 201) {
-        final conversation = Conversation.fromJson(response.data);
-        return Result.ok(conversation);
+        final product = Product.fromJson(response.data);
+        return Result.ok(product);
       } else {
-        return Result.error(Exception('Failed to create conversation'));
+        return Result.error(Exception('Failed to create product'));
       }
     } on DioException catch (e) {
-      return Result.error(
-        _handleDioError(e, 'Error creating buyer conversation'),
-      );
+      return Result.error(_handleDioError(e, e.response?.data['message']));
     } catch (e) {
-      _logger.e('Unexpected error creating buyer conversation', error: e);
+      _logger.e('Unexpected error creating product', error: e);
       return Result.error(Exception('Unexpected error occurred'));
     }
   }
 
   @override
-  Future<Result<Conversation>> createSellerConversation(
-    SellerConversationRequest request,
-  ) async {
+  Future<Result<void>> deleteProduct(num productId, num storeId) async {
     try {
-      _logger.i('Creating seller conversation');
+      _logger.i('Deleting product with id: $productId from store: $storeId');
 
-      final requestData = request.toJson();
+      final response = await _dio.delete(
+        '$deleteProducts/$productId',
+        queryParameters: {'store_id': storeId.toString()},
+      );
 
-      final response = await _dio.post(_sellerConversations, data: requestData);
-
-      if (response.statusCode == 201) {
-        final conversation = Conversation.fromJson(response.data);
-        return Result.ok(conversation);
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return Result.ok(null);
       } else {
-        return Result.error(Exception('Failed to create conversation'));
+        return Result.error(Exception('Failed to delete product'));
       }
     } on DioException catch (e) {
-      return Result.error(
-        _handleDioError(e, 'Error creating seller conversation'),
-      );
+      return Result.error(_handleDioError(e, 'Error deleting product'));
     } catch (e) {
-      _logger.e('Unexpected error creating seller conversation', error: e);
+      _logger.e('Unexpected error deleting product', error: e);
       return Result.error(Exception('Unexpected error occurred'));
     }
   }
 
   @override
-  Future<Result<List<Conversation>>> showBuyerListAllMessage(
-    Meta request,
-  ) async {
+  Future<Result<Product>> getProduct(num id) async {
     try {
-      _logger.i('Fetching buyer conversations');
+      _logger.i('Fetching product with id: $id');
+
+      final response = await _dio.get('$listAllProducts/$id');
+
+      if (response.statusCode == 200) {
+        final product = Product.fromJson(response.data);
+        return Result.ok(product);
+      } else {
+        return Result.error(Exception('Failed to fetch product'));
+      }
+    } on DioException catch (e) {
+      return Result.error(_handleDioError(e, 'Error fetching product'));
+    } catch (e) {
+      _logger.e('Unexpected error fetching product', error: e);
+      return Result.error(Exception('Unexpected error occurred'));
+    }
+  }
+
+  @override
+  Future<Result<List<Product>>> getPublicProducts(ProductsMeta request) async {
+    try {
+      _logger.i('Fetching public products');
 
       final queryParams = <String, dynamic>{
-        if (request.page != null) 'page': request.page.toString(),
-        if (request.perPage != null) 'per_page': request.perPage.toString(),
-        if (request.search != null && request.search!.isNotEmpty)
-          'search': request.search,
-        if (request.showAll != null) 'show_all': request.showAll.toString(),
-        if (request.sortBy != null && request.sortBy!.isNotEmpty)
-          'sort_by': request.sortBy,
-        if (request.sortOrder != null) 'sort_order': request.sortOrder!.name,
-      };
-
-      final response = await _dio.get(
-        _buyerConversations,
-        queryParameters: queryParams,
-      );
-
-      if (response.statusCode == 200) {
-        final conversation = List.from(
-          response.data,
-        ).map((e) => Conversation.fromJson(response.data)).toList();
-        return Result.ok(conversation);
-      } else {
-        return Result.error(Exception('Failed to fetch conversations'));
-      }
-    } on DioException catch (e) {
-      return Result.error(
-        _handleDioError(e, 'Error fetching buyer conversations'),
-      );
-    } catch (e) {
-      _logger.e('Unexpected error fetching buyer conversations', error: e);
-      return Result.error(Exception('Unexpected error occurred'));
-    }
-  }
-
-  @override
-  Future<Result<Conversation>> showBuyerConversation(num id) async {
-    try {
-      _logger.i('Fetching conversation with id: $id');
-
-      final response = await _dio.get('/$_buyerConversations/$id');
-
-      if (response.statusCode == 200) {
-        final conversation = Conversation.fromJson(response.data);
-        return Result.ok(conversation);
-      } else {
-        return Result.error(Exception('Failed to fetch conversation'));
-      }
-    } on DioException catch (e) {
-      return Result.error(_handleDioError(e, 'Error fetching conversation'));
-    } catch (e) {
-      _logger.e('Unexpected error fetching conversation', error: e);
-      return Result.error(Exception('Unexpected error occurred'));
-    }
-  }
-
-  @override
-  Future<Result<Conversation>> showSellerConversation(num id) async {
-    try {
-      _logger.i('Fetching conversation with id: $id');
-
-      final response = await _dio.get('$_buyerConversations/$id');
-
-      if (response.statusCode == 200) {
-        final conversation = Conversation.fromJson(response.data);
-        return Result.ok(conversation);
-      } else {
-        return Result.error(Exception('Failed to fetch conversation'));
-      }
-    } on DioException catch (e) {
-      return Result.error(_handleDioError(e, 'Error fetching conversation'));
-    } catch (e) {
-      _logger.e('Unexpected error fetching conversation', error: e);
-      return Result.error(Exception('Unexpected error occurred'));
-    }
-  }
-
-  @override
-  Future<Result<List<Conversation>>> showSellerListAllMessage(
-    SellerMeta request,
-  ) async {
-    try {
-      _logger.i('Fetching seller conversations for store ${request.storeId}');
-
-      final queryParams = <String, dynamic>{
-        'store_id': request.storeId.toString(),
         if (request.page != null) 'page': request.page.toString(),
         if (request.perPage != null) 'per_page': request.perPage.toString(),
         if (request.search != null && request.search!.isNotEmpty)
@@ -220,27 +157,59 @@ class ConversationRepositoryImpl implements ConversationRepository {
         if (request.sortBy != null && request.sortBy!.isNotEmpty)
           'sort_by': request.sortBy,
         if (request.sortOrder != null) 'sort_order': request.sortOrder!.name,
+        if (request.filterByCondition != null &&
+            request.filterByCondition!.isNotEmpty)
+          'filter_by_condition': request.filterByCondition!
+              .map((c) => c.name)
+              .join(','),
+        if (request.filterByStatus != null &&
+            request.filterByStatus!.isNotEmpty)
+          'filter_by_status': request.filterByStatus!
+              .map((s) => s.name)
+              .join(','),
       };
 
       final response = await _dio.get(
-        _sellerConversations,
+        listAllProducts,
         queryParameters: queryParams,
       );
 
       if (response.statusCode == 200) {
-        final conversation = List.from(
+        final products = List.from(
           response.data['data'],
-        ).map((e) => Conversation.fromJson(response.data)).toList();
-        return Result.ok(conversation);
+        ).map((e) => Product.fromJson(e)).toList();
+        return Result.ok(products);
       } else {
-        return Result.error(Exception('Failed to fetch seller conversations'));
+        return Result.error(Exception('Failed to fetch products'));
       }
     } on DioException catch (e) {
-      return Result.error(
-        _handleDioError(e, 'Error fetching seller conversations'),
-      );
+      return Result.error(_handleDioError(e, 'Error fetching products'));
     } catch (e) {
-      _logger.e('Unexpected error fetching seller conversations', error: e);
+      _logger.e('Unexpected error fetching products', error: e);
+      return Result.error(Exception('Unexpected error occurred'));
+    }
+  }
+
+  @override
+  Future<Result<Product>> updateProduct(UpdateProductRequest request) async {
+    try {
+      _logger.i('Updating product with id: ${request.id}');
+
+      final response = await _dio.put(
+        '$updateProducts/${request.id}',
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200) {
+        final product = Product.fromJson(response.data);
+        return Result.ok(product);
+      } else {
+        return Result.error(Exception('Failed to update product'));
+      }
+    } on DioException catch (e) {
+      return Result.error(_handleDioError(e, 'Error updating product'));
+    } catch (e) {
+      _logger.e('Unexpected error updating product', error: e);
       return Result.error(Exception('Unexpected error occurred'));
     }
   }
@@ -268,7 +237,6 @@ class ConversationRepositoryImpl implements ConversationRepository {
         final responseData = error.response?.data;
 
         if (statusCode == 422) {
-          // Validation error
           if (responseData is Map<String, dynamic> &&
               responseData['message'] != null) {
             message = responseData['message'];
@@ -281,7 +249,7 @@ class ConversationRepositoryImpl implements ConversationRepository {
           message =
               'Access forbidden. You don\'t have permission for this action.';
         } else if (statusCode == 404) {
-          message = 'Message not found.';
+          message = 'Product not found.';
         } else {
           message = '$context: Request failed with status $statusCode.';
         }

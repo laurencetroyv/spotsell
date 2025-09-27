@@ -25,6 +25,7 @@ class AdaptiveScaffold extends StatelessWidget {
     this.extendBodyBehindAppBar = false,
     this.signOut,
     this.isLoading,
+    this.parentHasBottomNavigationBar = false,
   });
 
   final Widget child;
@@ -41,6 +42,7 @@ class AdaptiveScaffold extends StatelessWidget {
   final bool extendBodyBehindAppBar;
   final VoidCallback? signOut;
   final bool? isLoading;
+  final bool? parentHasBottomNavigationBar;
 
   @override
   Widget build(BuildContext context) {
@@ -120,6 +122,16 @@ class AdaptiveScaffold extends StatelessWidget {
       );
     }
 
+    late double floatingActionButtonHeight;
+
+    if (parentHasBottomNavigationBar != null || bottomNavigationBar != null) {
+      floatingActionButtonHeight = kBottomNavigationBarHeight;
+    } else if (bottomNavigationBar != null) {
+      floatingActionButtonHeight = responsive.verticalPadding;
+    } else {
+      floatingActionButtonHeight = 0;
+    }
+
     return CupertinoPageScaffold(
       backgroundColor: backgroundColor,
       navigationBar: appBar != null
@@ -144,11 +156,7 @@ class AdaptiveScaffold extends StatelessWidget {
                 if (floatingActionButton != null)
                   Positioned(
                     right: responsive.horizontalPadding,
-                    bottom:
-                        responsive.verticalPadding +
-                        (bottomNavigationBar != null
-                            ? kBottomNavigationBarHeight
-                            : 0),
+                    bottom: floatingActionButtonHeight,
                     child: floatingActionButton!,
                   ),
                 if (bottomNavigationBar != null)

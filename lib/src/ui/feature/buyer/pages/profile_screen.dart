@@ -342,7 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       itemCount: favorites.length,
       itemBuilder: (context, index) {
         final item = favorites[index];
-        return ItemCard(item);
+        return ItemCard(item: item);
       },
     );
   }

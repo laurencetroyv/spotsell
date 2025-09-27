@@ -72,13 +72,21 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    return SafeArea(
-      child: AdaptiveScaffold(
-        isLoading: isLoading,
-        appBar: _buildAppBar(context, responsive),
-        floatingActionButton: _buildFloatingActionButton(context, responsive),
-        child: _buildBody(context, responsive),
-      ),
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, child) {
+        return SafeArea(
+          child: AdaptiveScaffold(
+            isLoading: isLoading,
+            appBar: _buildAppBar(context, responsive),
+            floatingActionButton: _buildFloatingActionButton(
+              context,
+              responsive,
+            ),
+            child: _buildBody(context, responsive),
+          ),
+        );
+      },
     );
   }
 

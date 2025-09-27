@@ -6,9 +6,14 @@ import 'package:flutter/material.dart';
 
 import 'package:fluent_ui/fluent_ui.dart' as fl;
 
+import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
+import 'package:spotsell/src/core/utils/result.dart';
+import 'package:spotsell/src/data/entities/products_request.dart';
+import 'package:spotsell/src/data/repositories/product_repository.dart';
 import 'package:spotsell/src/ui/feature/buyer/buyer_view_model.dart';
+import 'package:spotsell/src/ui/feature/buyer/widgets/item_card.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_text_field.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 
@@ -23,11 +28,37 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   late BuyerViewModel _viewModel;
+  late ProductRepository _repository;
+  final ScrollController _scrollController = ScrollController();
+  List<Product> _products = [];
 
   @override
   void initState() {
     super.initState();
     _viewModel = widget.viewModel;
+    _repository = getService<ProductRepository>();
+    _loadProductsFromRepository();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadProductsFromRepository() async {
+    try {
+      final request = ProductsMeta(showAll: true);
+      final response = await _repository.getPublicProducts(request);
+      switch (response) {
+        case Ok<List<Product>>():
+          setState(() => _products = response.value);
+        case Error<List<Product>>():
+          setState(() => _products = []);
+      }
+    } catch (e) {
+      debugPrint('Error loading products from repository: $e');
+    }
   }
 
   @override
@@ -39,13 +70,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
           : _buildAppBar(context),
       child: Column(
         children: [
-          if (!responsive.shouldShowNavigationRail)
-            _buildScamWarning(context, responsive),
-          _buildCategoriesSection(context, responsive),
-          if (!kIsWeb && !Platform.isWindows)
-            _buildTabSection(context, responsive),
-          if (!kIsWeb && !Platform.isWindows)
-            Expanded(child: _buildProductGrid(context, responsive)),
+          _buildTabSection(context, responsive),
+          Expanded(child: _buildProductGrid(context, responsive)),
         ],
       ),
     );
@@ -66,23 +92,20 @@ class _ExploreScreenState extends State<ExploreScreen> {
             placeholder: 'Search product',
             prefixIcon: CupertinoIcons.search,
             width: 200,
+            onChanged: _handleSearch,
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               CupertinoButton(
                 padding: EdgeInsets.zero,
+                onPressed: _handleFilter,
                 child: const Icon(CupertinoIcons.slider_horizontal_3),
-                onPressed: () {
-                  // Handle filter tap
-                },
               ),
               CupertinoButton(
                 padding: EdgeInsets.zero,
+                onPressed: _handleNotifications,
                 child: const Icon(CupertinoIcons.bell),
-                onPressed: () {
-                  // Handle notifications tap
-                },
               ),
             ],
           ),
@@ -120,20 +143,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       controller: _viewModel.searchController,
                       placeholder: 'Search product',
                       prefixIcon: Icons.search,
+                      onChanged: _handleSearch,
                     ),
                   ),
                   const SizedBox(width: 16),
                   fl.IconButton(
                     icon: const Icon(fl.FluentIcons.filter),
-                    onPressed: () {
-                      // Handle filter tap
-                    },
+                    onPressed: _handleFilter,
                   ),
                   fl.IconButton(
                     icon: const Icon(fl.FluentIcons.ringer),
-                    onPressed: () {
-                      // Handle notifications tap
-                    },
+                    onPressed: _handleNotifications,
                   ),
                 ],
               ),
@@ -158,19 +178,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
         controller: _viewModel.searchController,
         placeholder: 'Search product',
         prefixIcon: Icons.search,
+        onChanged: _handleSearch,
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.tune),
-          onPressed: () {
-            // Handle filter tap
-          },
-        ),
+        IconButton(icon: const Icon(Icons.tune), onPressed: _handleFilter),
         IconButton(
           icon: const Icon(Icons.notifications_outlined),
-          onPressed: () {
-            // Handle notifications tap
-          },
+          onPressed: _handleNotifications,
         ),
       ],
     );
@@ -190,14 +204,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       ),
       child: Row(
         children: [
-          Icon(
-            _getAdaptiveIcon(
-              AdaptiveIcon.search,
-              selected: false,
-            ), // Using search as security placeholder
-            color: _getWarningIconColor(context),
-            size: 20,
-          ),
+          Icon(Icons.security, color: _getWarningIconColor(context), size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -250,13 +257,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   Widget _buildCategoryCard(BuildContext context, String title, IconData icon) {
-    return _buildPlatformCard(
-      context: context,
-      onTap: () {
-        // Handle category tap
-      },
-      child: Padding(
+    return GestureDetector(
+      onTap: () => _handleCategoryTap(title),
+      child: Container(
         padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: ThemeUtils.getSurfaceColor(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: ThemeUtils.getTextColor(context).withValues(alpha: 0.1),
+          ),
+        ),
         child: Column(
           children: [
             Container(
@@ -321,7 +332,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       }
     }
 
-    // Material and Fluent (Fluent doesn't have native tabs, so we use Material)
+    // Material and Fluent
     return TabBar(
       controller: _viewModel.tabController,
       isScrollable: true,
@@ -346,7 +357,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     return TabBarView(
       controller: _viewModel.tabController,
       children: _viewModel.tabs
-          .map((tab) => _buildProductList(context, responsive))
+          .map((tab) => _buildProductList(context, responsive, tab))
           .toList(),
     );
   }
@@ -354,133 +365,68 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Widget _buildProductList(
     BuildContext context,
     ResponsiveBreakpoints responsive,
+    String tabName,
   ) {
-    return GridView.builder(
-      padding: EdgeInsets.all(responsive.mediumSpacing),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: responsive.gridCrossAxisCount,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: responsive.mediumSpacing,
-        mainAxisSpacing: responsive.mediumSpacing,
+    // Filter products based on tab (you can implement different logic here)
+    // final filteredProducts = _getProductsForTab(tabName);
+    final filteredProducts = _products;
+
+    if (filteredProducts.isEmpty) {
+      return _buildEmptyState(context, tabName);
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => _handleRefresh(tabName),
+      child: GridView.builder(
+        controller: _scrollController,
+        padding: EdgeInsets.all(responsive.mediumSpacing),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: responsive.gridCrossAxisCount,
+          childAspectRatio: 0.75,
+          crossAxisSpacing: responsive.mediumSpacing,
+          mainAxisSpacing: responsive.mediumSpacing,
+        ),
+        itemCount: filteredProducts.length,
+        itemBuilder: (context, index) {
+          final product = filteredProducts[index];
+          return ItemCard(
+            product: product,
+            onTap: () => _handleProductTap(product),
+            onFavorite: () => _handleFavoriteTap(product),
+            isFavorite: _viewModel.isFavorite(product.title),
+            heroTag: 'product_${product.title}_$index',
+            imageUrl:
+                'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?q=80&w=400&auto=format&fit=crop',
+          );
+        },
       ),
-      itemCount: 10, // Mock data
-      itemBuilder: (context, index) {
-        return _buildProductCard(context, index);
-      },
     );
   }
 
-  Widget _buildProductCard(BuildContext context, int index) {
-    // Mock product data
-    final products = [
-      {
-        'title': 'card binder',
-        'price': 'PHP 40',
-        'condition': 'Like New',
-        'seller': 'heartcollects',
-      },
-      {
-        'title': 'TUP 9 Pocket Binder (Powder Pink) Brand new sealed',
-        'price': 'PHP 1,234',
-        'condition': 'Brand New',
-        'seller': 'Deykey123',
-      },
-    ];
-
-    final product = products[index % products.length];
-
-    return _buildPlatformCard(
-      context: context,
-      onTap: () {
-        // Handle product tap
-      },
+  Widget _buildEmptyState(BuildContext context, String tabName) {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Product image
-          Expanded(
-            flex: 3,
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
-                color: _getProductImageBackground(context),
-              ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
-                child: _buildProductImage(),
-              ),
+          Icon(
+            ThemeUtils.getAdaptiveIcon(AdaptiveIcon.search),
+            size: 64,
+            color: ThemeUtils.getTextColor(context).withValues(alpha: 0.4),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No items found in $tabName',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: ThemeUtils.getTextColor(context).withValues(alpha: 0.6),
             ),
           ),
-
-          // Product details
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    product['title']!,
-                    style: _getProductTitleStyle(context),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Price and condition
-                  Row(
-                    children: [
-                      Text(
-                        product['price']!,
-                        style: _getProductPriceStyle(context),
-                      ),
-                      const Spacer(),
-                      Text(
-                        product['condition']!,
-                        style: _getProductConditionStyle(context),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Seller
-                  Row(
-                    children: [
-                      Container(
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: _getSellerAvatarBackground(context),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          _getAdaptiveIcon(
-                            AdaptiveIcon.profile,
-                            selected: false,
-                          ),
-                          size: 10,
-                          color: _getSellerAvatarIconColor(context),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          product['seller']!,
-                          style: _getSellerTextStyle(context),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+          const SizedBox(height: 8),
+          Text(
+            'Try adjusting your search or check back later',
+            style: TextStyle(
+              color: ThemeUtils.getTextColor(context).withValues(alpha: 0.4),
             ),
           ),
         ],
@@ -488,93 +434,74 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  Widget _buildPlatformCard({
-    required BuildContext context,
-    required VoidCallback onTap,
-    required Widget child,
-  }) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoButton(
-          onPressed: onTap,
-          padding: EdgeInsets.zero,
-          child: Container(
-            decoration: BoxDecoration(
-              color: CupertinoTheme.of(context).scaffoldBackgroundColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: CupertinoColors.separator.resolveFrom(context),
-              ),
-            ),
-            child: child,
-          ),
-        );
-      }
-
-      if (Platform.isWindows) {
-        return fl.Button(
-          onPressed: onTap,
-          child: Container(
-            decoration: BoxDecoration(
-              color: fl.FluentTheme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: fl.FluentTheme.of(
-                  context,
-                ).resources.cardStrokeColorDefault,
-              ),
-            ),
-            child: child,
-          ),
-        );
-      }
-    }
-
-    // Material
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: ThemeUtils.getSurfaceColor(context),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Theme.of(context).dividerColor),
-        ),
-        child: child,
-      ),
-    );
+  // Event handlers
+  void _handleSearch(String query) {
+    // Implement search logic
+    debugPrint('Searching for: $query');
+    // You can add debouncing here if needed
   }
 
-  Widget _buildProductImage() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          colors: [Colors.amber.shade200, Colors.orange.shade300],
-        ),
-      ),
-      child: Center(
-        child: Container(
-          width: 60,
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.brown.shade400,
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Center(
-            child: Container(
-              width: 40,
-              height: 25,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.brown.shade300),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+  void _handleFilter() {
+    // Implement filter logic
+    debugPrint('Filter tapped');
+    // Show filter bottom sheet or modal
   }
+
+  void _handleNotifications() {
+    // Implement notifications logic
+    debugPrint('Notifications tapped');
+    // Navigate to notifications screen
+  }
+
+  void _handleCategoryTap(String category) {
+    // Implement category filtering
+    debugPrint('Category tapped: $category');
+    // Filter products by category
+  }
+
+  void _handleProductTap(Product product) {
+    // Navigate to product details
+    debugPrint('Product tapped: ${product.title}');
+    // Navigate to product detail screen
+  }
+
+  void _handleFavoriteTap(Product product) {
+    // Toggle favorite status
+    debugPrint('Favorite tapped: ${product.title}');
+    setState(() {
+      _viewModel.toggleFavorite(product.title);
+    });
+  }
+
+  Future<void> _handleRefresh(String tabName) async {
+    // Implement refresh logic
+    debugPrint('Refreshing $tabName');
+    // Simulate network delay
+    await Future.delayed(const Duration(seconds: 1));
+    // Refresh products data
+  }
+
+  // Helper methods
+  // List<Map<String, String>> _getProductsForTab(String tabName) {
+  //   // Filter products based on tab
+  //   // This is mock logic - replace with actual filtering
+  //   switch (tabName) {
+  //     case 'Top Picks':
+  //       return _mockProducts.take(6).toList();
+  //     case 'Nearby':
+  //       return _mockProducts
+  //           .where((p) => p['seller']?.contains('heart') ?? false)
+  //           .toList();
+  //     case 'Free Items':
+  //       return _mockProducts.where((p) => p['price'] == '0').toList();
+  //     case 'Following':
+  //       return _mockProducts
+  //           .where((p) => _viewModel.isFollowing(p['seller'] ?? ''))
+  //           .toList();
+  //     default:
+  //       return _mockProducts;
+  //   }
+  // }
 
   IconData _getCategoryIcon(String category) {
     if (!kIsWeb) {
@@ -736,170 +663,5 @@ class _ExploreScreenState extends State<ExploreScreen> {
     return Theme.of(
       context,
     ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500);
-  }
-
-  Color _getProductImageBackground(BuildContext context) {
-    return Colors.amber.shade100;
-  }
-
-  TextStyle? _getProductTitleStyle(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoTheme.of(
-          context,
-        ).textTheme.textStyle.copyWith(fontWeight: FontWeight.w500);
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(
-          context,
-        ).typography.body?.copyWith(fontWeight: FontWeight.w500);
-      }
-    }
-    return Theme.of(
-      context,
-    ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500);
-  }
-
-  TextStyle? _getProductPriceStyle(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-          fontWeight: FontWeight.w600,
-          color: CupertinoColors.activeBlue.resolveFrom(context),
-          fontSize: 13,
-        );
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(context).typography.caption?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: fl.FluentTheme.of(context).accentColor,
-        );
-      }
-    }
-    return Theme.of(context).textTheme.bodySmall?.copyWith(
-      fontWeight: FontWeight.w600,
-      color: ThemeUtils.getPrimaryColor(context),
-    );
-  }
-
-  TextStyle? _getProductConditionStyle(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-          color: CupertinoColors.systemGreen.resolveFrom(context),
-          fontSize: 10,
-        );
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(context).typography.caption?.copyWith(
-          color: Colors.green.shade600,
-          fontSize: 10,
-        );
-      }
-    }
-    return Theme.of(
-      context,
-    ).textTheme.bodySmall?.copyWith(color: Colors.green.shade600, fontSize: 10);
-  }
-
-  Color _getSellerAvatarBackground(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoColors.systemGrey5.resolveFrom(context);
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(context).resources.subtleFillColorSecondary;
-      }
-    }
-    return Colors.grey.shade300;
-  }
-
-  Color _getSellerAvatarIconColor(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoColors.systemGrey.resolveFrom(context);
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(context).resources.textFillColorSecondary;
-      }
-    }
-    return Colors.grey.shade600;
-  }
-
-  TextStyle? _getSellerTextStyle(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-          color: CupertinoColors.secondaryLabel.resolveFrom(context),
-          fontSize: 11,
-        );
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(context).typography.caption?.copyWith(
-          color: fl.FluentTheme.of(context).resources.textFillColorSecondary,
-          fontSize: 11,
-        );
-      }
-    }
-    return Theme.of(context).textTheme.bodySmall?.copyWith(
-      color: ThemeUtils.getTextColor(context).withValues(alpha: 0.6),
-      fontSize: 11,
-    );
-  }
-
-  IconData _getAdaptiveIcon(AdaptiveIcon icon, {required bool selected}) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        switch (icon) {
-          case AdaptiveIcon.home:
-            return selected ? CupertinoIcons.house_fill : CupertinoIcons.house;
-          case AdaptiveIcon.search:
-            return CupertinoIcons.search;
-          case AdaptiveIcon.favorite:
-            return selected ? CupertinoIcons.heart_fill : CupertinoIcons.heart;
-          case AdaptiveIcon.profile:
-            return selected
-                ? CupertinoIcons.person_fill
-                : CupertinoIcons.person;
-          case AdaptiveIcon.settings:
-            return CupertinoIcons.settings;
-          default:
-            return CupertinoIcons.question;
-        }
-      }
-
-      if (Platform.isWindows) {
-        switch (icon) {
-          case AdaptiveIcon.home:
-            return fl.FluentIcons.home;
-          case AdaptiveIcon.search:
-            return fl.FluentIcons.search;
-          case AdaptiveIcon.favorite:
-            return fl.FluentIcons.heart;
-          case AdaptiveIcon.profile:
-            return fl.FluentIcons.contact;
-          case AdaptiveIcon.settings:
-            return fl.FluentIcons.settings;
-          default:
-            return fl.FluentIcons.help;
-        }
-      }
-    }
-
-    // Material
-    switch (icon) {
-      case AdaptiveIcon.home:
-        return selected ? Icons.home : Icons.home_outlined;
-      case AdaptiveIcon.search:
-        return Icons.explore_outlined;
-      case AdaptiveIcon.favorite:
-        return selected ? Icons.favorite : Icons.favorite_border;
-      case AdaptiveIcon.profile:
-        return selected ? Icons.person : Icons.person_outline;
-      case AdaptiveIcon.settings:
-        return Icons.settings;
-      default:
-        return Icons.help_outline;
-    }
   }
 }

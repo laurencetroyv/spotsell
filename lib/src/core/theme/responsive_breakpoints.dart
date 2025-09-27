@@ -58,9 +58,9 @@ class ResponsiveBreakpoints {
   }
 
   int get gridCrossAxisCount {
-    if (isMobile) return 1;
-    if (isTablet) return 2;
-    if (isDesktop) return 3;
+    if (isMobile) return 2;
+    if (isTablet) return 3;
+    if (isDesktop) return 6;
     return 4; // wide
   }
 

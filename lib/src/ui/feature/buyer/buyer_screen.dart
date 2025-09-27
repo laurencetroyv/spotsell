@@ -9,9 +9,10 @@ import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/feature/buyer/buyer_view_model.dart';
+import 'package:spotsell/src/ui/feature/buyer/pages/conversation_screen.dart';
 import 'package:spotsell/src/ui/feature/buyer/pages/explore_screen.dart';
+import 'package:spotsell/src/ui/feature/buyer/pages/message_screen.dart';
 import 'package:spotsell/src/ui/feature/buyer/pages/profile_screen.dart';
-import 'package:spotsell/src/ui/feature/buyer/pages/sell_screen.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 
 class BuyerScreen extends StatefulWidget {
@@ -47,8 +48,8 @@ class _BuyerScreenState extends State<BuyerScreen>
     }
 
     _viewModel.pages = [
+      ConversationScreen(),
       ExploreScreen(_viewModel),
-      SellScreen(),
       ProfileScreen(_authService),
     ];
   }
@@ -98,14 +99,14 @@ class _BuyerScreenState extends State<BuyerScreen>
       backgroundColor: ThemeUtils.getSurfaceColor(context),
       destinations: [
         NavigationRailDestination(
+          icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.favorite)),
+          selectedIcon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.messages)),
+          label: const Text('Message'),
+        ),
+        NavigationRailDestination(
           icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.home)),
           selectedIcon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.home)),
           label: const Text('Explore'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.favorite)),
-          selectedIcon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.favorite)),
-          label: const Text('Sell'),
         ),
         NavigationRailDestination(
           icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.settings)),
@@ -146,14 +147,15 @@ class _BuyerScreenState extends State<BuyerScreen>
           backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
           items: [
             BottomNavigationBarItem(
+              icon: const Icon(CupertinoIcons.chat_bubble),
+              activeIcon: const Icon(CupertinoIcons.chat_bubble_fill),
+              label: 'Message',
+            ),
+            BottomNavigationBarItem(
               icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.search)),
               label: 'Explore',
             ),
-            BottomNavigationBarItem(
-              icon: const Icon(CupertinoIcons.bag),
-              activeIcon: const Icon(CupertinoIcons.bag_fill),
-              label: 'Sell',
-            ),
+
             BottomNavigationBarItem(
               icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.profile)),
               label: 'Me',
@@ -182,13 +184,11 @@ class _BuyerScreenState extends State<BuyerScreen>
         context,
       ).withValues(alpha: 0.6),
       items: [
+        const BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Message'),
+
         BottomNavigationBarItem(
           icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.search)),
           label: 'Explore',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.storefront),
-          label: 'Sell',
         ),
         BottomNavigationBarItem(
           icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.profile)),

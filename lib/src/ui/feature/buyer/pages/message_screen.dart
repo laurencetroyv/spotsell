@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-class SellScreen extends StatelessWidget {
-  const SellScreen({super.key});
+class MessageScreen extends StatelessWidget {
+  const MessageScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

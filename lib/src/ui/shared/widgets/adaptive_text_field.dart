@@ -20,6 +20,7 @@ class AdaptiveTextField extends StatefulWidget {
     this.keyboardType,
     this.textInputAction,
     this.obscureText = false,
+    this.minLines = 1,
     this.maxLines = 1,
     this.maxLength,
     this.onChanged,
@@ -38,6 +39,7 @@ class AdaptiveTextField extends StatefulWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final bool obscureText;
+  final int? minLines;
   final int? maxLines;
   final int? maxLength;
   final ValueChanged<String>? onChanged;
@@ -127,6 +129,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
       textInputAction: widget.textInputAction,
       obscureText: _isObscured,
       maxLines: widget.maxLines,
+      minLines: widget.minLines,
       maxLength: widget.maxLength,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
@@ -174,6 +177,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
       obscureText: _isObscured,
+      minLines: widget.minLines,
       maxLines: widget.maxLines,
       maxLength: widget.maxLength,
       onChanged: widget.onChanged,
@@ -212,6 +216,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
       obscureText: _isObscured,
+      minLines: widget.minLines,
       maxLines: widget.maxLines,
       maxLength: widget.maxLength,
       onChanged: widget.onChanged,

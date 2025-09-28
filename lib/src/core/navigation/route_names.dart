@@ -15,6 +15,7 @@ class RouteNames {
   static const String settings = '/settings';
   static const String manageStores = '/manage-store';
   static const String addProduct = '/add-product';
+  static const String productDetail = '/product-detail';
 
   static const List<String> allRoutes = [
     welcome,
@@ -28,6 +29,7 @@ class RouteNames {
     settings,
     manageStores,
     addProduct,
+    productDetail,
   ];
 
   // Helper method to check if route requires authentication
@@ -41,6 +43,7 @@ class RouteNames {
       settings,
       manageStores,
       addProduct,
+      productDetail,
     ];
     return authRequiredRoutes.contains(routeName);
   }
@@ -51,9 +54,8 @@ class RouteNames {
       case UserRole.admin:
         return admin;
       case UserRole.seller:
-        return seller;
       case UserRole.buyer:
-        return buyer;
+        return home;
     }
   }
 }

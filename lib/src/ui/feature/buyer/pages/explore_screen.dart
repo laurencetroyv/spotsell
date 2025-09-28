@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
+import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
+import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
 import 'package:spotsell/src/data/entities/products_request.dart';
@@ -160,18 +162,14 @@ class _ExploreScreenState extends State<ExploreScreen>
       elevation: 0,
       scrolledUnderElevation: 0,
       backgroundColor: ThemeUtils.getBackgroundColor(context),
-      leading: IconButton(
-        icon: const Icon(Icons.menu),
-        onPressed: () {
-          // Handle menu tap
-        },
-      ),
       title: AdaptiveTextField(
         controller: _viewModel.searchController,
         placeholder: 'Search product',
         prefixIcon: Icons.search,
         onChanged: _handleSearch,
       ),
+      centerTitle: false,
+      automaticallyImplyLeading: false,
       actions: [
         IconButton(icon: const Icon(Icons.tune), onPressed: _handleFilter),
         IconButton(
@@ -336,9 +334,7 @@ class _ExploreScreenState extends State<ExploreScreen>
   }
 
   void _handleProductTap(Product product) {
-    // Navigate to product details
-    debugPrint('Product tapped: ${product.title}');
-    // Navigate to product detail screen
+    context.pushNamed(RouteNames.productDetail, arguments: product);
   }
 
   Future<void> _handleRefresh(String tabName) async {

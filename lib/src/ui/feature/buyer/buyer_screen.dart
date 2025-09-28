@@ -28,9 +28,6 @@ class _BuyerScreenState extends State<BuyerScreen>
   final FocusNode _searchFocusNode = FocusNode();
   final TextEditingController _searchController = TextEditingController();
 
-  // bool _showAdvancedFilters = false;
-  // bool _isCompactMode = false;
-
   @override
   void initState() {
     super.initState();
@@ -76,7 +73,7 @@ class _BuyerScreenState extends State<BuyerScreen>
     return Scaffold(
       body: Row(
         children: [
-          if (_shouldShowNavigationRail(responsive))
+          if (responsive.shouldShowNavigationRail)
             _buildEnhancedNavigationSidebar(context, responsive),
 
           Expanded(
@@ -92,12 +89,6 @@ class _BuyerScreenState extends State<BuyerScreen>
         ],
       ),
     );
-  }
-
-  bool _shouldShowNavigationRail(ResponsiveBreakpoints responsive) {
-    return responsive.shouldShowNavigationRail ||
-        (!kIsWeb && Platform.isWindows) ||
-        (kIsWeb && responsive.isDesktop);
   }
 
   Widget _buildEnhancedNavigationSidebar(
@@ -250,28 +241,6 @@ class _BuyerScreenState extends State<BuyerScreen>
         }),
 
         const SizedBox(height: 16),
-
-        // if (_viewModel.extend && responsive.isDesktop) ...[
-        //   _buildSectionDivider(context, 'Quick Actions'),
-        //   _buildQuickActionItem(
-        //     context,
-        //     Icons.filter_list,
-        //     'Advanced Filters',
-        //     () => setState(() => _showAdvancedFilters = !_showAdvancedFilters),
-        //   ),
-        //   _buildQuickActionItem(
-        //     context,
-        //     _isCompactMode ? Icons.view_list : Icons.view_module,
-        //     _isCompactMode ? 'Card View' : 'Compact View',
-        //     () => setState(() => _isCompactMode = !_isCompactMode),
-        //   ),
-        //   _buildQuickActionItem(
-        //     context,
-        //     Icons.refresh,
-        //     'Refresh',
-        //     () => _refreshCurrentPage(),
-        //   ),
-        // ],
       ],
     );
   }
@@ -338,33 +307,6 @@ class _BuyerScreenState extends State<BuyerScreen>
       ),
     );
   }
-
-  // Widget _buildSectionDivider(BuildContext context, String title) {
-  //   if (!_viewModel.extend) return const SizedBox.shrink();
-
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-  //     child: Text(
-  //       title,
-  //       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-  //         color: Theme.of(
-  //           context,
-  //         ).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
-  //         fontWeight: FontWeight.w600,
-  //         letterSpacing: 0.5,
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Widget _buildQuickActionItem(
-  //   BuildContext context,
-  //   IconData icon,
-  //   String label,
-  //   VoidCallback onTap,
-  // ) {
-  //   return _buildNavigationItem(context, icon, icon, label, false, onTap);
-  // }
 
   Widget _buildRailFooter(
     BuildContext context,
@@ -558,8 +500,4 @@ class _BuyerScreenState extends State<BuyerScreen>
 
     return content;
   }
-
-  // void _refreshCurrentPage() {
-  //   debugPrint('Refreshing current page');
-  // }
 }

@@ -14,13 +14,19 @@ import 'package:spotsell/src/ui/app.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  if (kIsWeb) {
+    usePathUrlStrategy();
+  }
+
   if (!kIsWeb) {
     if (Platform.isLinux || Platform.isFuchsia) {
       await YaruWindowTitleBar.ensureInitialized();
     }
   }
 
-  usePathUrlStrategy();
+  if (kDebugMode) {
+    return runApp(App());
+  }
 
   final platform = await PackageInfo.fromPlatform();
 
@@ -28,11 +34,7 @@ Future<void> main() async {
     options.release = platform.version;
     options.environment = Env.ENVIRONMENT;
     options.dsn = Env.SENTRY_DNS;
-    // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
-    // We recommend adjusting this value in production.
     options.tracesSampleRate = 1.0;
-    // The sampling rate for profiling is relative to tracesSampleRate
-    // Setting to 1.0 will profile 100% of sampled transactions:
     options.profilesSampleRate = 1.0;
   }, appRunner: () => runApp(SentryWidget(child: const App())));
 }

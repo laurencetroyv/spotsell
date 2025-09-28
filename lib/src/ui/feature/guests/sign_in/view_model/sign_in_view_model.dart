@@ -134,9 +134,12 @@ class SignInViewModel extends BaseViewModel {
   /// Navigate to user's appropriate dashboard based on their role
   void _navigateToUserDashboard() {
     try {
+      // Get the route for the user's primary role
+      final route = RouteNames.getRouteForRole(_authService.primaryRole);
+
       // Navigate and clear the entire stack
       navigateToAndClearStack(
-        RouteNames.home,
+        route,
         errorMessage: 'Unable to navigate to dashboard',
       ).then((success) {
         if (!success) {

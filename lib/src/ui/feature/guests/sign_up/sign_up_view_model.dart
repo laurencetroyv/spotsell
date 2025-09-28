@@ -1,13 +1,16 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/utils/result.dart';
+import 'package:spotsell/src/data/entities/attachments_entity.dart';
 import 'package:spotsell/src/data/entities/auth_request.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
@@ -28,7 +31,7 @@ class SignUpViewModel extends BaseViewModel {
 
   // Additional fields
   bool? gender; // true = male, false = female
-  File? profilePicture;
+  ImageData? profilePicture;
   DateTime? _selectedDateOfBirth;
 
   String get firstName => firstNameController.text;
@@ -265,6 +268,22 @@ class SignUpViewModel extends BaseViewModel {
   /// Perform the actual sign up process using AuthService
   Future<Result<AuthUser>> _performSignUp() async {
     try {
+      List<MultipartFile> multipartFiles = [];
+
+      if (profilePicture != null) {
+        if (kIsWeb && profilePicture!.bytes != null) {
+          multipartFiles.add(
+            MultipartFile.fromBytes(
+              profilePicture!.bytes!,
+              filename: profilePicture!.displayName,
+              contentType: DioMediaType.parse(
+                profilePicture!.mimeType ?? 'image/jpeg',
+              ),
+            ),
+          );
+        }
+      }
+
       final request = SignUpRequest(
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -275,9 +294,7 @@ class SignUpViewModel extends BaseViewModel {
         password: password,
         passwordConfirmation: passwordConfirmation,
         gender: gender! ? 'Male' : 'Female',
-        attachments: profilePicture != null
-            ? List.generate(1, (index) => profilePicture!).toList()
-            : null,
+        attachments: multipartFiles,
       );
 
       // Use AuthService which will handle AuthRepository internally
@@ -497,9 +514,21 @@ class SignUpViewModel extends BaseViewModel {
       );
 
       if (pickedFile != null) {
-        profilePicture = File(pickedFile.path);
+        if (kIsWeb) {
+          final bytes = await pickedFile.readAsBytes();
+          profilePicture = ImageData(
+            bytes: bytes,
+            name: pickedFile.name,
+            mimeType: pickedFile.mimeType,
+          );
+        } else {
+          profilePicture = ImageData(
+            file: File(pickedFile.path),
+            name: pickedFile.name,
+            mimeType: pickedFile.mimeType,
+          );
+        }
         safeNotifyListeners();
-        showSuccessMessage('Profile picture selected successfully!');
       }
     } catch (e) {
       showErrorMessage('Failed to select image. Please try again.');

@@ -706,12 +706,14 @@ class _SignUpScreenState extends State<SignUpScreen>
                 ? Stack(
                     children: [
                       ClipOval(
-                        child: Image.file(
-                          _viewModel.profilePicture!,
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                        ),
+                        child: kIsWeb
+                            ? Image.memory(_viewModel.profilePicture!.bytes!)
+                            : Image.file(
+                                _viewModel.profilePicture!.file!,
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.cover,
+                              ),
                       ),
                       Positioned(
                         top: 0,

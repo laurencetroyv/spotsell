@@ -5,28 +5,30 @@ class Conversation {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  final AuthUser buyer;
-  final Store seller;
+  final AuthUser? buyer;
+  final Store? seller;
 
-  final Message latestMessage;
+  final Message? latestMessage;
 
   Conversation({
     required this.id,
     required this.createdAt,
     required this.updatedAt,
-    required this.buyer,
-    required this.seller,
-    required this.latestMessage,
+    this.buyer,
+    this.seller,
+    this.latestMessage,
   });
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
     return Conversation(
-      id: num.parse(json['id']),
+      id: json['id'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
-      buyer: AuthUser.fromJson(json['buyer']),
-      seller: Store.fromJson(json['store']),
-      latestMessage: Message.fromJson(json['latest_message']),
+      buyer: json['buyer'] != null ? AuthUser.fromJson(json['buyer']) : null,
+      seller: json['store'] != null ? Store.fromJson(json['store']) : null,
+      latestMessage: json['latest_message'] != null
+          ? Message.fromJson(json['latest_message'])
+          : null,
     );
   }
 }
@@ -34,7 +36,6 @@ class Conversation {
 class ConversationRequest {
   final num storeId;
   final String message;
-  final num maxMessageLength = 1000;
 
   ConversationRequest({required this.storeId, required this.message});
 

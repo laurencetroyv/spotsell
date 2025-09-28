@@ -100,8 +100,12 @@ class AuthUser {
     this.attachments,
   });
 
-  factory AuthUser.fromJson(Map<String, dynamic> json, {String? token}) {
-    final data = json['data'];
+  factory AuthUser.fromJson(
+    Map<String, dynamic> json, {
+    String? token,
+    bool fromMessage = false,
+  }) {
+    final data = fromMessage ? json : json['data'];
     late List<Attachment>? attachments;
 
     final hasAttachments = data['attachments'] != null;

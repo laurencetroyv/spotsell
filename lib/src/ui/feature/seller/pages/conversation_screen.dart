@@ -222,7 +222,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              chat.buyer.username,
+                              chat.buyer?.username ?? '',
                               style: ThemeUtils.getAdaptiveTextStyle(
                                 context,
                                 TextStyleType.body,
@@ -250,7 +250,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       ),
                       SizedBox(height: 2),
                       Text(
-                        chat.buyer.username,
+                        chat.buyer?.username ?? '',
                         style: ThemeUtils.getAdaptiveTextStyle(
                           context,
                           TextStyleType.caption,
@@ -258,7 +258,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       ),
                       SizedBox(height: responsive.smallSpacing * 0.5),
                       Text(
-                        chat.latestMessage.content,
+                        chat.latestMessage?.content ?? '',
                         style:
                             ThemeUtils.getAdaptiveTextStyle(
                               context,
@@ -301,10 +301,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
           width: 1,
         ),
       ),
-      child: chat.buyer.attachments != null
+      child: chat.buyer?.attachments != null
           ? ClipOval(
               child: Image.network(
-                chat.buyer.attachments!.first.url,
+                chat.buyer!.attachments!.first.url,
                 fit: BoxFit.cover,
                 width: avatarSize,
                 height: avatarSize,
@@ -343,7 +343,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   void _openChat(Conversation chat) {
     // TODO: Navigate to individual chat screen
-    debugPrint('Opening chat with ${chat.buyer.username}');
+    debugPrint('Opening chat with ${chat.buyer?.username}');
   }
 
   @override

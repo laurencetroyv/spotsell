@@ -31,3 +31,17 @@ class SellerMeta extends Meta {
     super.sortOrder,
   });
 }
+
+class BuyerConversationMeta extends Meta {
+  final num? storeId;
+
+  BuyerConversationMeta({
+    this.storeId,
+    super.page,
+    super.perPage,
+    super.search,
+    super.showAll,
+    super.sortBy,
+    super.sortOrder,
+  });
+}

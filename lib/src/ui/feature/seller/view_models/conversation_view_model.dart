@@ -22,14 +22,18 @@ class ConversationViewModel extends BaseViewModel {
     if (searchQuery.isEmpty) {
       return conversations;
     }
+
+    if (conversations.isEmpty) {
+      return conversations;
+    }
     return conversations.where((chat) {
-      return chat.buyer.name.toLowerCase().contains(
+      return chat.buyer!.name.toLowerCase().contains(
             searchQuery.toLowerCase(),
           ) ||
-          chat.buyer.username.toLowerCase().contains(
+          chat.buyer!.username.toLowerCase().contains(
             searchQuery.toLowerCase(),
           ) ||
-          chat.latestMessage.content.toLowerCase().contains(
+          chat.latestMessage!.content.toLowerCase().contains(
             searchQuery.toLowerCase(),
           );
     }).toList();

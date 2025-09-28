@@ -82,7 +82,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               Row(
                 children: [
                   Text(
-                    '\$${product.price}',
+                    'PHP${product.price}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: CupertinoColors.systemGreen,
@@ -134,7 +134,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             Row(
               children: [
                 Text(
-                  '\$${product.price}',
+                  'PHP${product.price}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: ThemeUtils.getPrimaryColor(context),

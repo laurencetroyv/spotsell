@@ -172,6 +172,12 @@ class ProductRepositoryImpl implements ProductRepository {
         if (request.storeId != null) 'store_id': request.storeId,
       };
 
+      if (request.withMeta != null && request.withMeta!.isNotEmpty) {
+        for (int i = 0; i < request.withMeta!.length; i++) {
+          queryParams['with[$i]'] = request.withMeta![i];
+        }
+      }
+
       final response = await _dio.get(
         listAllProducts,
         queryParameters: queryParams,

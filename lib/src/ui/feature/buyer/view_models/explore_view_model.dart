@@ -46,7 +46,10 @@ class ExploreViewModel extends BaseViewModel {
 
   Future<void> _loadProductsFromRepository() async {
     try {
-      final request = ProductsMeta(showAll: true);
+      final request = ProductsMeta(
+        showAll: true,
+        withMeta: ['store', 'categories'],
+      );
 
       await executeAsyncResult<List<Product>>(
         () => _repository.getPublicProducts(request),

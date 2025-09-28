@@ -151,6 +151,7 @@ class Product {
 class ProductsMeta extends Meta {
   final List<Condition>? filterByCondition;
   final List<Status>? filterByStatus;
+  final List<String>? withMeta;
   final int? storeId;
 
   ProductsMeta({
@@ -162,6 +163,7 @@ class ProductsMeta extends Meta {
     super.sortOrder,
     this.filterByCondition,
     this.filterByStatus,
+    this.withMeta,
     this.storeId,
   });
 }

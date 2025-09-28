@@ -1,4 +1,4 @@
-import 'package:spotsell/src/data/entities/auth_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 
 class Store {
   final int id;

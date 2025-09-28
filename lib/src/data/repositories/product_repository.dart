@@ -1,5 +1,5 @@
 import 'package:spotsell/src/core/utils/result.dart';
-import 'package:spotsell/src/data/entities/products_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 
 abstract class ProductRepository {
   Future<Result<List<Product>>> getPublicProducts(ProductsMeta request);

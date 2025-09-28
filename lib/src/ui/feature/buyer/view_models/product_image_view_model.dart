@@ -2,8 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/utils/result.dart';
-import 'package:spotsell/src/data/entities/products_request.dart';
-import 'package:spotsell/src/data/entities/store_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/data/repositories/product_repository.dart';
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 

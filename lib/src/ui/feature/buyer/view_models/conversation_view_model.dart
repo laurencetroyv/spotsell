@@ -2,8 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/utils/result.dart';
-import 'package:spotsell/src/data/entities/messages_request.dart';
-import 'package:spotsell/src/data/entities/meta_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/data/repositories/conversation_repository.dart';
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 

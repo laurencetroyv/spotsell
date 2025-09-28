@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
-import 'package:spotsell/src/data/entities/user_role.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/feature/admin/admin_screen.dart';
 import 'package:spotsell/src/ui/feature/buyer/buyer_screen.dart';

@@ -8,8 +8,7 @@ import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
-import 'package:spotsell/src/data/entities/auth_request.dart';
-import 'package:spotsell/src/data/entities/store_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/feature/seller/view_models/profile_view_model.dart';
 import 'package:spotsell/src/ui/feature/seller/widgets/profile_info_card.dart';

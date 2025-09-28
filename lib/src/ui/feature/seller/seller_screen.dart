@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
-import 'package:spotsell/src/data/entities/store_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/feature/seller/pages/pages.dart';
 import 'package:spotsell/src/ui/feature/seller/view_models/seller_view_model.dart';

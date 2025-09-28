@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:spotsell/src/core/utils/result.dart';
-import 'package:spotsell/src/data/entities/auth_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 
 abstract class AuthRepository {
   /// Sign in with email and password

@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import 'package:spotsell/src/data/entities/attachments_entity.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 
 class SignInRequest {
   final String email, password;

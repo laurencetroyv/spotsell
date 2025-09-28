@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
-import 'package:spotsell/src/data/entities/messages_request.dart';
-import 'package:spotsell/src/data/entities/store_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/ui/feature/seller/view_models/conversation_view_model.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_text_field.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';

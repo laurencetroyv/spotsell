@@ -52,7 +52,6 @@ class AdaptiveApplication extends StatelessWidget {
         onUnknownRoute: AppRouter.onUnknownRoute,
         initialRoute: AppRouter.getInitialRoute(),
         onGenerateRoute: AppRouter.onGenerateRoute,
-        navigatorObservers: AppRouter.navigatorObservers,
         theme: ThemeManager.materialLightTheme(context),
         darkTheme: ThemeManager.materialDarkTheme(context),
         builder: (context, child) {
@@ -71,7 +70,6 @@ class AdaptiveApplication extends StatelessWidget {
         onUnknownRoute: AppRouter.onUnknownRoute,
         initialRoute: AppRouter.getInitialRoute(),
         onGenerateRoute: AppRouter.onGenerateRoute,
-        navigatorObservers: AppRouter.navigatorObservers,
         theme: MediaQuery.of(context).platformBrightness == Brightness.dark
             ? ThemeManager.cupertinoDarkTheme(context)
             : ThemeManager.cupertinoLightTheme(context),
@@ -94,7 +92,6 @@ class AdaptiveApplication extends StatelessWidget {
         onGenerateRoute: AppRouter.onGenerateRoute,
         theme: ThemeManager.yaruLightTheme(context),
         darkTheme: ThemeManager.yaruDarkTheme(context),
-        navigatorObservers: AppRouter.navigatorObservers,
         builder: (context, child) {
           return MediaQuery(data: MediaQuery.of(context), child: child!);
         },
@@ -113,7 +110,6 @@ class AdaptiveApplication extends StatelessWidget {
         initialRoute: AppRouter.getInitialRoute(),
         onGenerateRoute: AppRouter.onGenerateRoute,
         theme: ThemeManager.fluentLightTheme(context),
-        navigatorObservers: AppRouter.navigatorObservers,
         darkTheme: ThemeManager.fluentDarkTheme(context),
         builder: (context, child) {
           return fl.Overlay(

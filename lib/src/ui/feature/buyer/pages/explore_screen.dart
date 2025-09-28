@@ -9,56 +9,38 @@ import 'package:fluent_ui/fluent_ui.dart' as fl;
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
-import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/products_request.dart';
 import 'package:spotsell/src/data/repositories/product_repository.dart';
-import 'package:spotsell/src/ui/feature/buyer/buyer_view_model.dart';
+import 'package:spotsell/src/ui/feature/buyer/view_models/explore_view_model.dart';
 import 'package:spotsell/src/ui/feature/buyer/widgets/item_card.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_text_field.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 
 class ExploreScreen extends StatefulWidget {
-  const ExploreScreen(this.viewModel, {super.key});
-
-  final BuyerViewModel viewModel;
+  const ExploreScreen({super.key});
 
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
 }
 
-class _ExploreScreenState extends State<ExploreScreen> {
-  late BuyerViewModel _viewModel;
+class _ExploreScreenState extends State<ExploreScreen>
+    with TickerProviderStateMixin {
+  late ExploreViewModel _viewModel;
   late ProductRepository _repository;
   final ScrollController _scrollController = ScrollController();
-  List<Product> _products = [];
 
   @override
   void initState() {
     super.initState();
-    _viewModel = widget.viewModel;
     _repository = getService<ProductRepository>();
-    _loadProductsFromRepository();
+    _viewModel = ExploreViewModel(_repository);
+    _viewModel.initialize();
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadProductsFromRepository() async {
-    try {
-      final request = ProductsMeta(showAll: true);
-      final response = await _repository.getPublicProducts(request);
-      switch (response) {
-        case Ok<List<Product>>():
-          setState(() => _products = response.value);
-        case Error<List<Product>>():
-          setState(() => _products = []);
-      }
-    } catch (e) {
-      debugPrint('Error loading products from repository: $e');
-    }
   }
 
   @override
@@ -68,11 +50,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
       appBar: responsive.shouldShowNavigationRail
           ? null
           : _buildAppBar(context),
-      child: Column(
-        children: [
-          _buildTabSection(context, responsive),
-          Expanded(child: _buildProductGrid(context, responsive)),
-        ],
+      child: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, child) {
+          _viewModel.tabController = TabController(
+            length: _viewModel.tabs.length,
+            vsync: this,
+          );
+
+          return Column(
+            children: [
+              _buildTabSection(context, responsive),
+              Expanded(child: _buildProductGrid(context, responsive)),
+            ],
+          );
+        },
       ),
     );
   }
@@ -190,113 +182,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  Widget _buildScamWarning(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    return Container(
-      margin: EdgeInsets.all(responsive.mediumSpacing),
-      padding: EdgeInsets.all(responsive.mediumSpacing),
-      decoration: BoxDecoration(
-        color: _getWarningBackgroundColor(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _getWarningBorderColor(context)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.security, color: _getWarningIconColor(context), size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Beware of "pa-ahon" scams.',
-                  style: _getWarningTitleStyle(context),
-                ),
-                Text(
-                  'Don\'t interact on bittemote ahons and commission tricks. It\'s a scam.',
-                  style: _getWarningBodyStyle(context),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCategoriesSection(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: responsive.horizontalPadding,
-        vertical: responsive.smallSpacing,
-      ),
-      child: Row(
-        children: _viewModel.categories.asMap().entries.map((entry) {
-          final category = entry.value;
-
-          return Expanded(
-            child: Container(
-              margin: EdgeInsets.symmetric(
-                horizontal: responsive.smallSpacing / 2,
-              ),
-              child: _buildCategoryCard(
-                context,
-                category,
-                _getCategoryIcon(category),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildCategoryCard(BuildContext context, String title, IconData icon) {
-    return GestureDetector(
-      onTap: () => _handleCategoryTap(title),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: ThemeUtils.getSurfaceColor(context),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: ThemeUtils.getTextColor(context).withValues(alpha: 0.1),
-          ),
-        ),
-        child: Column(
-          children: [
-            Container(
-              height: 60,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: _getCategoryCardBackground(context),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                icon,
-                size: 32,
-                color: _getCategoryIconColor(context),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: _getCategoryTextStyle(context),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildTabSection(
     BuildContext context,
     ResponsiveBreakpoints responsive,
@@ -367,9 +252,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
     ResponsiveBreakpoints responsive,
     String tabName,
   ) {
-    // Filter products based on tab (you can implement different logic here)
-    // final filteredProducts = _getProductsForTab(tabName);
-    final filteredProducts = _products;
+    final filteredProducts = _viewModel.getProductsForTab(tabName);
+
+    if (_viewModel.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     if (filteredProducts.isEmpty) {
       return _buildEmptyState(context, tabName);
@@ -392,11 +279,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
           return ItemCard(
             product: product,
             onTap: () => _handleProductTap(product),
-            onFavorite: () => _handleFavoriteTap(product),
-            isFavorite: _viewModel.isFavorite(product.title),
-            heroTag: 'product_${product.title}_$index',
-            imageUrl:
-                'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?q=80&w=400&auto=format&fit=crop',
           );
         },
       ),
@@ -453,24 +335,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
     // Navigate to notifications screen
   }
 
-  void _handleCategoryTap(String category) {
-    // Implement category filtering
-    debugPrint('Category tapped: $category');
-    // Filter products by category
-  }
-
   void _handleProductTap(Product product) {
     // Navigate to product details
     debugPrint('Product tapped: ${product.title}');
     // Navigate to product detail screen
-  }
-
-  void _handleFavoriteTap(Product product) {
-    // Toggle favorite status
-    debugPrint('Favorite tapped: ${product.title}');
-    setState(() {
-      _viewModel.toggleFavorite(product.title);
-    });
   }
 
   Future<void> _handleRefresh(String tabName) async {
@@ -479,189 +347,5 @@ class _ExploreScreenState extends State<ExploreScreen> {
     // Simulate network delay
     await Future.delayed(const Duration(seconds: 1));
     // Refresh products data
-  }
-
-  // Helper methods
-  // List<Map<String, String>> _getProductsForTab(String tabName) {
-  //   // Filter products based on tab
-  //   // This is mock logic - replace with actual filtering
-  //   switch (tabName) {
-  //     case 'Top Picks':
-  //       return _mockProducts.take(6).toList();
-  //     case 'Nearby':
-  //       return _mockProducts
-  //           .where((p) => p['seller']?.contains('heart') ?? false)
-  //           .toList();
-  //     case 'Free Items':
-  //       return _mockProducts.where((p) => p['price'] == '0').toList();
-  //     case 'Following':
-  //       return _mockProducts
-  //           .where((p) => _viewModel.isFollowing(p['seller'] ?? ''))
-  //           .toList();
-  //     default:
-  //       return _mockProducts;
-  //   }
-  // }
-
-  IconData _getCategoryIcon(String category) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        switch (category) {
-          case 'Property':
-            return CupertinoIcons.house;
-          case 'Autos':
-            return CupertinoIcons.car;
-          case 'Mobile Phones & Gadgets':
-            return CupertinoIcons.phone;
-          default:
-            return CupertinoIcons.square_grid_2x2;
-        }
-      }
-
-      if (Platform.isWindows) {
-        switch (category) {
-          case 'Property':
-            return fl.FluentIcons.home;
-          case 'Autos':
-            return fl.FluentIcons.car;
-          case 'Mobile Phones & Gadgets':
-            return fl.FluentIcons.phone;
-          default:
-            return fl.FluentIcons.grid_view_small;
-        }
-      }
-    }
-
-    // Material
-    switch (category) {
-      case 'Property':
-        return Icons.home;
-      case 'Autos':
-        return Icons.directions_car;
-      case 'Mobile Phones & Gadgets':
-        return Icons.phone_android;
-      default:
-        return Icons.category;
-    }
-  }
-
-  // Platform-specific styling methods
-  Color _getWarningBackgroundColor(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoColors.systemBlue.withValues(alpha: 0.1);
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(context).accentColor.withValues(alpha: 0.1);
-      }
-    }
-    return Colors.blue.shade50;
-  }
-
-  Color _getWarningBorderColor(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoColors.systemBlue.withValues(alpha: 0.3);
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(context).accentColor.withValues(alpha: 0.3);
-      }
-    }
-    return Colors.blue.shade200;
-  }
-
-  Color _getWarningIconColor(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoColors.systemBlue;
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(context).accentColor;
-      }
-    }
-    return Colors.blue.shade600;
-  }
-
-  TextStyle? _getWarningTitleStyle(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-          fontWeight: FontWeight.w600,
-          color: CupertinoColors.systemBlue,
-        );
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(context).typography.body?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: fl.FluentTheme.of(context).accentColor,
-        );
-      }
-    }
-    return Theme.of(context).textTheme.bodyMedium?.copyWith(
-      fontWeight: FontWeight.w600,
-      color: Colors.blue.shade700,
-    );
-  }
-
-  TextStyle? _getWarningBodyStyle(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-          fontSize: 13,
-          color: CupertinoColors.systemBlue,
-        );
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(context).typography.caption?.copyWith(
-          color: fl.FluentTheme.of(context).accentColor,
-        );
-      }
-    }
-    return Theme.of(
-      context,
-    ).textTheme.bodySmall?.copyWith(color: Colors.blue.shade600);
-  }
-
-  Color _getCategoryCardBackground(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoColors.systemGrey6.resolveFrom(context);
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(context).resources.subtleFillColorSecondary;
-      }
-    }
-    return Colors.grey.shade200;
-  }
-
-  Color _getCategoryIconColor(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoColors.systemGrey.resolveFrom(context);
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(context).resources.textFillColorSecondary;
-      }
-    }
-    return Colors.grey.shade600;
-  }
-
-  TextStyle? _getCategoryTextStyle(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        );
-      }
-      if (Platform.isWindows) {
-        return fl.FluentTheme.of(
-          context,
-        ).typography.caption?.copyWith(fontWeight: FontWeight.w500);
-      }
-    }
-    return Theme.of(
-      context,
-    ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500);
   }
 }

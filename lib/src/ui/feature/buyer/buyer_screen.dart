@@ -11,7 +11,6 @@ import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/feature/buyer/buyer_view_model.dart';
 import 'package:spotsell/src/ui/feature/buyer/pages/conversation_screen.dart';
 import 'package:spotsell/src/ui/feature/buyer/pages/explore_screen.dart';
-import 'package:spotsell/src/ui/feature/buyer/pages/message_screen.dart';
 import 'package:spotsell/src/ui/feature/buyer/pages/profile_screen.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 
@@ -33,11 +32,6 @@ class _BuyerScreenState extends State<BuyerScreen>
     _viewModel = BuyerViewModel();
     _viewModel.initialize();
 
-    _viewModel.tabController = TabController(
-      length: _viewModel.tabs.length,
-      vsync: this,
-    );
-
     _initialzeAuth();
   }
 
@@ -49,7 +43,7 @@ class _BuyerScreenState extends State<BuyerScreen>
 
     _viewModel.pages = [
       ConversationScreen(),
-      ExploreScreen(_viewModel),
+      ExploreScreen(),
       ProfileScreen(_authService),
     ];
   }

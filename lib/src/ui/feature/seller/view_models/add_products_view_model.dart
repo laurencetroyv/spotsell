@@ -214,7 +214,7 @@ class AddProductsViewModel extends BaseViewModel {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         store: store,
-        attachments: multipartFiles,
+        images: multipartFiles,
         categories: selectedCategories.isNotEmpty ? selectedCategories : null,
       );
 

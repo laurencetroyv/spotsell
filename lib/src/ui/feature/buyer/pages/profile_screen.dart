@@ -270,7 +270,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         _buildSectionHeader(context, 'Favorites', 'Manage Favorites'),
         SizedBox(height: responsive.smallSpacing),
-        _buildFavoritesGrid(context, responsive),
+        // _buildFavoritesGrid(context, responsive),
       ],
     );
   }
@@ -303,49 +303,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildFavoritesGrid(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    // Mock favorite items
-    final favorites = List.generate(
-      6,
-      (index) => {
-        'title': 'Item Title',
-        'price': 'PHP 1,234',
-        'condition': 'Brand New',
-        'seller': 'Dexter123',
-      },
-    );
+  // Widget _buildFavoritesGrid(
+  //   BuildContext context,
+  //   ResponsiveBreakpoints responsive,
+  // ) {
+  //   // Mock favorite items
+  //   final favorites = List.generate(
+  //     6,
+  //     (index) => {
+  //       'title': 'Item Title',
+  //       'price': 'PHP 1,234',
+  //       'condition': 'Brand New',
+  //       'seller': 'Dexter123',
+  //     },
+  //   );
 
-    int crossAxisCount = 2;
+  //   int crossAxisCount = 2;
 
-    if (responsive.isMobile) {
-      crossAxisCount = 2;
-    } else if (responsive.isTablet) {
-      crossAxisCount = 3;
-    } else if (responsive.isDesktop) {
-      crossAxisCount = 5;
-    } else {
-      crossAxisCount = 7;
-    }
+  //   if (responsive.isMobile) {
+  //     crossAxisCount = 2;
+  //   } else if (responsive.isTablet) {
+  //     crossAxisCount = 3;
+  //   } else if (responsive.isDesktop) {
+  //     crossAxisCount = 5;
+  //   } else {
+  //     crossAxisCount = 7;
+  //   }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: responsive.smallSpacing,
-        mainAxisSpacing: responsive.smallSpacing,
-      ),
-      itemCount: favorites.length,
-      itemBuilder: (context, index) {
-        final item = favorites[index];
-        return ItemCard(item: item);
-      },
-    );
-  }
+  //   return GridView.builder(
+  //     shrinkWrap: true,
+  //     physics: const NeverScrollableScrollPhysics(),
+  //     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+  //       crossAxisCount: crossAxisCount,
+  //       childAspectRatio: 0.8,
+  //       crossAxisSpacing: responsive.smallSpacing,
+  //       mainAxisSpacing: responsive.smallSpacing,
+  //     ),
+  //     itemCount: favorites.length,
+  //     itemBuilder: (context, index) {
+  //       final item = favorites[index];
+  //       return ItemCard(item: item);
+  //     },
+  //   );
+  // }
 
   void _handleSectionAction(String section) {
     switch (section) {

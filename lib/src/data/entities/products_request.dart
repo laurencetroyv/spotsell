@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import 'package:spotsell/src/data/entities/attachments_entity.dart';
 import 'package:spotsell/src/data/entities/meta_request.dart';
 import 'package:spotsell/src/data/entities/store_request.dart';
 
@@ -15,6 +16,7 @@ class Product {
   final Condition condition;
   final Status status;
   final Store? store;
+  final List<Attachment>? attachments;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -28,6 +30,7 @@ class Product {
     required this.createdAt,
     required this.updatedAt,
     this.store,
+    this.attachments,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -39,6 +42,9 @@ class Product {
       condition: getCondition(json['condition']),
       status: getStatus(json['status']),
       store: json['store'] != null ? Store.fromJson(json['store']) : null,
+      attachments: json['attachments'] != null
+          ? List.castFrom(json['attachments'])
+          : null,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
@@ -162,7 +168,7 @@ class ProductsMeta extends Meta {
 
 class ProductsRequest extends Product {
   final List<int>? categories;
-  final List<MultipartFile>? attachments;
+  final List<MultipartFile>? images;
 
   ProductsRequest({
     super.id,
@@ -173,7 +179,7 @@ class ProductsRequest extends Product {
     required super.status,
     required super.createdAt,
     required super.updatedAt,
-    this.attachments,
+    this.images,
     super.store,
     this.categories,
   });
@@ -194,7 +200,7 @@ class UpdateProductRequest extends ProductsRequest {
     required super.status,
     required super.createdAt,
     required super.updatedAt,
-    super.attachments,
+    super.images,
     super.store,
     super.categories,
   });

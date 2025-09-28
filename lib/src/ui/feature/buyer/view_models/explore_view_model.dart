@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:spotsell/src/data/entities/products_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/data/repositories/product_repository.dart';
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 

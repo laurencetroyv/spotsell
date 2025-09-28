@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'package:fluent_ui/fluent_ui.dart' as fl;
 
-import 'package:spotsell/src/data/entities/store_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/ui/feature/buyer/widgets/store_form_dialog.dart';
 
 class StoreDialogUtils {

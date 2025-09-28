@@ -17,3 +17,17 @@ class Meta {
     this.sortOrder,
   });
 }
+
+class SellerMeta extends Meta {
+  final num storeId;
+
+  SellerMeta({
+    required this.storeId,
+    super.page,
+    super.perPage,
+    super.search,
+    super.showAll,
+    super.sortBy,
+    super.sortOrder,
+  });
+}

@@ -8,7 +8,7 @@ import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
-import 'package:spotsell/src/data/entities/products_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/ui/feature/buyer/view_models/product_image_view_model.dart';
 import 'package:spotsell/src/ui/feature/buyer/widgets/item_card.dart';
 import 'package:spotsell/src/ui/feature/buyer/widgets/product_image_carousel.dart';

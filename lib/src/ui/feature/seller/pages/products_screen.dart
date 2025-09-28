@@ -7,8 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
-import 'package:spotsell/src/data/entities/products_request.dart';
-import 'package:spotsell/src/data/entities/store_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/ui/feature/seller/view_models/products_view_model.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 

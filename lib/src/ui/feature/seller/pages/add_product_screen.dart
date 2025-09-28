@@ -8,9 +8,7 @@ import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
-import 'package:spotsell/src/data/entities/attachments_entity.dart';
-import 'package:spotsell/src/data/entities/products_request.dart';
-import 'package:spotsell/src/data/entities/store_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/ui/feature/seller/view_models/add_products_view_model.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_button.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_text_field.dart';

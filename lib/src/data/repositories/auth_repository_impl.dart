@@ -8,7 +8,7 @@ import 'package:logger/web.dart';
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/utils/env.dart';
 import 'package:spotsell/src/core/utils/result.dart';
-import 'package:spotsell/src/data/entities/auth_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/data/repositories/auth_repository.dart';
 import 'package:spotsell/src/data/services/logger_service.dart';
 import 'package:spotsell/src/data/services/secure_storage_service.dart';

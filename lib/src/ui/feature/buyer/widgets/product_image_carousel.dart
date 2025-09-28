@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
-import 'package:spotsell/src/data/entities/products_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 
 class ProductImageCarousel extends StatefulWidget {
   const ProductImageCarousel({

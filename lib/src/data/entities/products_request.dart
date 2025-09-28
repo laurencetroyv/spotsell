@@ -1,8 +1,6 @@
 import 'package:dio/dio.dart';
 
-import 'package:spotsell/src/data/entities/attachments_entity.dart';
-import 'package:spotsell/src/data/entities/meta_request.dart';
-import 'package:spotsell/src/data/entities/store_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 
 enum Condition { superNew, likeNew, good, fair, poor }
 

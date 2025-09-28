@@ -1,6 +1,5 @@
 import 'package:spotsell/src/core/utils/result.dart';
-import 'package:spotsell/src/data/entities/messages_request.dart';
-import 'package:spotsell/src/data/entities/meta_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 
 abstract class ConversationRepository {
   Future<Result<List<Conversation>>> showBuyerListAllMessage(Meta request);

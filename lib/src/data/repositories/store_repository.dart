@@ -1,5 +1,5 @@
 import 'package:spotsell/src/core/utils/result.dart';
-import 'package:spotsell/src/data/entities/store_request.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 
 abstract class StoreRepository {
   /// Get all public stores (for buyers/guests)

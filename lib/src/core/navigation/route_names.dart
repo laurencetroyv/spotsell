@@ -1,4 +1,4 @@
-import 'package:spotsell/src/data/entities/user_role.dart';
+import 'package:spotsell/src/data/entities/entities.dart';
 
 class RouteNames {
   // Auth Routes

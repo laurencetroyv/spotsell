@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/utils/constants.dart';
-import 'package:spotsell/src/ui/feature/guests/sign_up/view_model/sign_up_view_model.dart';
+import 'package:spotsell/src/ui/feature/guests/sign_up/sign_up_view_model.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_button.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_text_field.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
@@ -706,12 +706,14 @@ class _SignUpScreenState extends State<SignUpScreen>
                 ? Stack(
                     children: [
                       ClipOval(
-                        child: Image.file(
-                          _viewModel.profilePicture!,
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                        ),
+                        child: kIsWeb
+                            ? Image.memory(_viewModel.profilePicture!.bytes!)
+                            : Image.file(
+                                _viewModel.profilePicture!.file!,
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.cover,
+                              ),
                       ),
                       Positioned(
                         top: 0,

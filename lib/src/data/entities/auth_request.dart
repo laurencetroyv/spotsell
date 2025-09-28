@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
+
 import 'package:spotsell/src/data/entities/attachments_entity.dart';
 
 class SignInRequest {
@@ -20,7 +22,7 @@ class SignUpRequest {
       gender,
       phone;
   final DateTime dateOfBirth;
-  final List<File>? attachments;
+  final List<MultipartFile>? attachments;
 
   const SignUpRequest({
     required this.firstName,

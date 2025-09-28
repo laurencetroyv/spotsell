@@ -109,26 +109,16 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       _logger.i('Attempting sign up for email: ${request.email}');
 
-      // Prepare form data for multipart upload (in case of profile picture)_logger
-      FormData formData;
+      final data = request.toJson();
 
       if (request.attachments != null && request.attachments!.isNotEmpty) {
-        final data = request.toJson();
-
-        // Add attachments to the form data
-        final attachmentFiles = <MultipartFile>[];
-        for (final file in request.attachments!) {
-          final fileName = file.path.split('/').last;
-          attachmentFiles.add(
-            await MultipartFile.fromFile(file.path, filename: fileName),
-          );
+        for (int i = 0; i < request.attachments!.length; i++) {
+          data['attachments[$i][file]'] = request.attachments![i];
+          data['attachments[$i][type]'] = 'profile_picture';
         }
-
-        data['attachments[]'] = attachmentFiles;
-        formData = FormData.fromMap(data);
-      } else {
-        formData = FormData.fromMap(request.toJson());
       }
+
+      final formData = FormData.fromMap(data);
 
       final response = await _dio.post(
         _signUpUrlEndpoint,

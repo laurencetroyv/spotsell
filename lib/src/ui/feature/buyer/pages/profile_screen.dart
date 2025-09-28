@@ -17,7 +17,6 @@ import 'package:spotsell/src/data/entities/store_request.dart';
 import 'package:spotsell/src/data/repositories/store_repository.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/feature/buyer/view_models/profile_view_model.dart';
-import 'package:spotsell/src/ui/feature/buyer/widgets/item_card.dart';
 import 'package:spotsell/src/ui/feature/buyer/widgets/profile_info_card.dart';
 import 'package:spotsell/src/ui/feature/buyer/widgets/store_item_card.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_button.dart';
@@ -198,11 +197,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildStoresSection(context, responsive),
             SizedBox(height: responsive.largeSpacing),
           ],
-
-          _buildFavoritesSection(context, responsive),
-          SizedBox(height: responsive.extraLargeSpacing),
-
-          SizedBox(height: responsive.mediumSpacing),
         ],
       ),
     );
@@ -258,19 +252,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildFavoritesSection(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    return Column(
-      children: [
-        _buildSectionHeader(context, 'Favorites', 'Manage Favorites'),
-        SizedBox(height: responsive.smallSpacing),
-        // _buildFavoritesGrid(context, responsive),
       ],
     );
   }

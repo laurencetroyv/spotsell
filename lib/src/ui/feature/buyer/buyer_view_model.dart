@@ -4,7 +4,7 @@ import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 
 class BuyerViewModel extends BaseViewModel {
   bool extend = true;
-  int selectedNavIndex = 0;
+  int selectedNavIndex = 1;
 
   final List<String> categories = [
     'Property',

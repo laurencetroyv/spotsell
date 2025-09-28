@@ -55,6 +55,10 @@ class _ExploreScreenState extends State<ExploreScreen>
       child: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, child) {
+          if (_viewModel.products.isEmpty) {
+            return _buildEmptyState(context);
+          }
+
           _viewModel.tabController = TabController(
             length: _viewModel.tabs.length,
             vsync: this,
@@ -256,10 +260,6 @@ class _ExploreScreenState extends State<ExploreScreen>
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (filteredProducts.isEmpty) {
-      return _buildEmptyState(context, tabName);
-    }
-
     return RefreshIndicator(
       onRefresh: () => _handleRefresh(tabName),
       child: GridView.builder(
@@ -283,7 +283,7 @@ class _ExploreScreenState extends State<ExploreScreen>
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, String tabName) {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -295,7 +295,7 @@ class _ExploreScreenState extends State<ExploreScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            'No items found in $tabName',
+            'No items found',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/entities.dart';
+import 'package:spotsell/src/data/repositories/conversation_repository.dart';
 import 'package:spotsell/src/data/repositories/product_repository.dart';
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 
@@ -12,16 +13,19 @@ class ProductDetailViewModel extends BaseViewModel {
   Map<String, String>? _productItem;
   List<String> _productImages = [];
   List<Product> _recommendations = [];
+  List<Conversation> _conversations = [];
 
   int _storeProductCount = 0;
 
   // Repository
   late ProductRepository _productRepository;
+  late ConversationRepository _conversationRepository;
 
   // Getters
   Product? get product => _product;
   Map<String, String>? get productItem => _productItem;
   List<String> get productImages => _productImages;
+  List<Conversation> get conversations => _conversations;
   List<Product> get recommendations => _recommendations;
   int get storeProductCount => _storeProductCount;
 
@@ -58,7 +62,9 @@ class ProductDetailViewModel extends BaseViewModel {
   @override
   void initialize() {
     super.initialize();
+
     _productRepository = getService<ProductRepository>();
+    _conversationRepository = getService<ConversationRepository>();
   }
 
   /// Load product details from Product entity
@@ -134,6 +140,64 @@ class ProductDetailViewModel extends BaseViewModel {
       }
     } catch (e) {
       debugPrint('Error loading store recommendations: $e');
+    }
+  }
+
+  Future<void> loadConversationOfStore() async {
+    if (_product?.store?.id == null) {
+      return;
+    }
+
+    try {
+      final request = BuyerConversationMeta(
+        storeId: _product!.store!.id,
+        showAll: true,
+      );
+
+      final result = await _conversationRepository.showBuyerListAllMessage(
+        request,
+      );
+
+      switch (result) {
+        case Ok<List<Conversation>>():
+          final conversations = result.value;
+
+          if (conversations.isEmpty) {
+            createNewConversation();
+          } else {
+            _conversations = conversations;
+          }
+        case Error<List<Conversation>>():
+          // TODO: Handle this case.
+          throw UnimplementedError();
+      }
+    } catch (e) {
+      debugPrint('Error loading conversation of the selected store: $e');
+    }
+  }
+
+  Future<void> createNewConversation() async {
+    if (_product?.store?.id == null) {
+      return;
+    }
+
+    final request = ConversationRequest(
+      storeId: _product!.store!.id,
+      message: "Hi, is this product ${product?.title} still available?",
+    );
+
+    final result = await _conversationRepository.createBuyerConversation(
+      request,
+    );
+
+    switch (result) {
+      case Ok<Conversation>():
+        final conversation = result.value;
+        conversations.add(conversation);
+
+      case Error<Conversation>():
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 

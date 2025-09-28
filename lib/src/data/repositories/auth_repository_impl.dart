@@ -203,28 +203,18 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       _logger.i('Attempting profile update');
 
-      // Prepare form data
-      FormData formData;
+      final data = request.toJson();
 
       if (request.attachments != null && request.attachments!.isNotEmpty) {
-        final data = request.toJson();
-
-        final attachmentFiles = <MultipartFile>[];
-
-        for (final file in request.attachments!) {
-          final fileName = file.path.split('/').last;
-          attachmentFiles.add(
-            await MultipartFile.fromFile(file.path, filename: fileName),
-          );
+        for (int i = 0; i < request.attachments!.length; i++) {
+          data['attachments[$i][file]'] = request.attachments![i];
+          data['attachments[$i][type]'] = 'profile_picture';
         }
-
-        data['attachments[]'] = attachmentFiles;
-        formData = FormData.fromMap(data);
-      } else {
-        formData = FormData.fromMap(request.toJson());
       }
 
-      final response = await _dio.patch(
+      final formData = FormData.fromMap(data);
+
+      final response = await _dio.post(
         _updateProfileUrlEndpoint,
         data: formData,
         options: Options(headers: {'Content-Type': 'multipart/form-data'}),

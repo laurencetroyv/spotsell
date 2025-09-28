@@ -84,7 +84,7 @@ class WelcomeViewModel extends BaseViewModel {
   Future<void> handleContinueWithEmail() async {
     await executeAsync<void>(
       () async {
-        final success = await navigateTo(RouteNames.signUp);
+        final success = await navigateToAndClearStack(RouteNames.signUp);
         if (!success) {
           throw Exception('Failed to navigate to sign up');
         }
@@ -98,7 +98,7 @@ class WelcomeViewModel extends BaseViewModel {
   Future<void> handleSignIn() async {
     await executeAsync<void>(
       () async {
-        final success = await navigateTo(RouteNames.signIn);
+        final success = await navigateToAndClearStack(RouteNames.signIn);
         if (!success) {
           throw Exception('Failed to navigate to sign in');
         }

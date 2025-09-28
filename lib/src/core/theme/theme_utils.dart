@@ -362,6 +362,12 @@ class ThemeUtils {
             return CupertinoIcons.chat_bubble;
           case AdaptiveIcon.store:
             return CupertinoIcons.bag;
+          case AdaptiveIcon.error:
+            return CupertinoIcons.exclamationmark_triangle;
+          case AdaptiveIcon.send:
+            return CupertinoIcons.paperplane;
+          case AdaptiveIcon.call:
+            return CupertinoIcons.phone;
         }
       }
 
@@ -389,6 +395,12 @@ class ThemeUtils {
             return fl.FluentIcons.message;
           case AdaptiveIcon.store:
             return fl.FluentIcons.store_logo16;
+          case AdaptiveIcon.error:
+            return fl.FluentIcons.error;
+          case AdaptiveIcon.send:
+            return fl.FluentIcons.send;
+          case AdaptiveIcon.call:
+            return fl.FluentIcons.cell_phone;
         }
       }
     }
@@ -417,6 +429,12 @@ class ThemeUtils {
         return Icons.chat;
       case AdaptiveIcon.store:
         return Icons.storefront;
+      case AdaptiveIcon.error:
+        return Icons.error;
+      case AdaptiveIcon.send:
+        return Icons.send;
+      case AdaptiveIcon.call:
+        return Icons.phone;
     }
   }
 }
@@ -437,4 +455,7 @@ enum AdaptiveIcon {
   signOut,
   messages,
   store,
+  error,
+  send,
+  call,
 }

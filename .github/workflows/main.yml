@@ -335,11 +335,12 @@ jobs:
 
       - name: 🔧 Create environment file
         run: |
-          cat > .env << EOF
+          @"
           API=${{ secrets.API_KEY }}
           SENTRY_DNS=${{ secrets.SENTRY_DNS }}
           ENVIRONMENT=${{ secrets.ENVIRONMENT }}
-          EOF
+          "@ | Out-File -FilePath .env -Encoding utf8
+        shell: pwsh
 
       - name: 🗃️ Generate environment configuration
         run: dart run build_runner build

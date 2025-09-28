@@ -4,6 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:intl/intl.dart';
+
 import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
@@ -273,9 +275,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 '${_viewModel.storeProductCount}',
               ),
               const SizedBox(width: 24),
-              _buildStatItem(context, 'Followers', '1.2K'), // Mock data
+              _buildStatItem(context, 'Followers', '1.2K'),
               const SizedBox(width: 24),
-              _buildStatItem(context, 'Joined', 'Jan 2023'), // Mock data
+              _buildStatItem(
+                context,
+                'Joined',
+                DateFormat('MMM. dd, yyyy').format(product.store!.createdAt),
+              ),
             ],
           ),
         ],
@@ -299,11 +305,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   ) {
     return Padding(
       padding: EdgeInsets.all(responsive.mediumSpacing),
-      child: AdaptiveButton(
-        type: AdaptiveButtonType.secondary,
-        onPressed: _handleMessage,
-        icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.messages)),
-        child: const Text('Message'),
+      child: Row(
+        spacing: responsive.verticalPadding,
+        children: [
+          Expanded(
+            child: AdaptiveButton(
+              onPressed: _handleMessage,
+              icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.messages)),
+              child: const Text('Message'),
+            ),
+          ),
+          if (!kIsWeb && product.store!.phone != null)
+            Expanded(
+              child: AdaptiveButton(
+                type: AdaptiveButtonType.secondary,
+                onPressed: _handleContact,
+                icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.call)),
+                child: const Text('Contact'),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -436,9 +457,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     debugPrint('Share product');
   }
 
-  void _handleMessage() {
-    // Navigate to chat with seller
-    debugPrint('Message seller');
+  Future<void> _handleMessage() async {
+    await _viewModel.loadConversationOfStore();
+
+    await context.pushNamed(
+      RouteNames.message,
+      arguments: _viewModel.conversations.first,
+    );
+  }
+
+  Future<void> _handleContact() async {
+    context.pushNamed(RouteNames.message, arguments: product);
   }
 
   void _handleViewAllProducts() {

@@ -133,7 +133,7 @@ class ConversationRepositoryImpl implements ConversationRepository {
         if (request.perPage != null) 'per_page': request.perPage.toString(),
         if (request.search != null && request.search!.isNotEmpty)
           'search': request.search,
-        if (request.showAll != null) 'show_all': request.showAll.toString(),
+        if (request.showAll != null) 'show_all': request.showAll! ? 1 : 0,
         if (request.sortBy != null && request.sortBy!.isNotEmpty)
           'sort_by': request.sortBy,
         if (request.sortOrder != null) 'sort_order': request.sortOrder!.name,
@@ -146,8 +146,8 @@ class ConversationRepositoryImpl implements ConversationRepository {
 
       if (response.statusCode == 200) {
         final conversation = List.from(
-          response.data,
-        ).map((e) => Conversation.fromJson(response.data)).toList();
+          response.data['data'],
+        ).map((e) => Conversation.fromJson(e)).toList();
         return Result.ok(conversation);
       } else {
         return Result.error(Exception('Failed to fetch conversations'));
@@ -167,10 +167,10 @@ class ConversationRepositoryImpl implements ConversationRepository {
     try {
       _logger.i('Fetching conversation with id: $id');
 
-      final response = await _dio.get('/$_buyerConversations/$id');
+      final response = await _dio.get('$_buyerConversations/$id');
 
       if (response.statusCode == 200) {
-        final conversation = Conversation.fromJson(response.data);
+        final conversation = Conversation.fromJson(response.data['data']);
         return Result.ok(conversation);
       } else {
         return Result.error(Exception('Failed to fetch conversation'));

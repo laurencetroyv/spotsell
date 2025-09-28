@@ -191,12 +191,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           SizedBox(height: responsive.largeSpacing),
 
-          if (_authService.isSeller && _viewModel.userStores.isEmpty)
-            AdaptiveProgressRing()
-          else ...[
-            _buildStoresSection(context, responsive),
-            SizedBox(height: responsive.largeSpacing),
-          ],
+          if (_authService.isSeller)
+            if (_viewModel.userStores.isEmpty)
+              AdaptiveProgressRing()
+            else ...[
+              _buildStoresSection(context, responsive),
+              SizedBox(height: responsive.largeSpacing),
+            ],
         ],
       ),
     );

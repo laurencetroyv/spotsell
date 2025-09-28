@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:dio/dio.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fl;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +14,7 @@ import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
 import 'package:spotsell/src/core/utils/result.dart';
+import 'package:spotsell/src/data/entities/attachments_entity.dart';
 import 'package:spotsell/src/data/entities/auth_request.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_button.dart';
@@ -41,7 +43,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   String? _errorMessage;
   bool? _gender; // true = male, false = female
   DateTime? _selectedDateOfBirth;
-  File? _newProfilePicture;
+  ImageData? _newProfilePicture;
   bool _hasProfilePictureChanged = false;
 
   @override
@@ -379,9 +381,20 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
 
   Widget _buildProfilePictureContent() {
     if (_newProfilePicture != null) {
+      if (kIsWeb) {
+        return ClipOval(
+          child: Image.memory(
+            _newProfilePicture!.bytes!,
+            width: 100,
+            height: 100,
+            fit: BoxFit.cover,
+          ),
+        );
+      }
+
       return ClipOval(
         child: Image.file(
-          _newProfilePicture!,
+          _newProfilePicture!.file!,
           width: 100,
           height: 100,
           fit: BoxFit.cover,
@@ -898,6 +911,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
 
   Future<void> _selectProfilePicture(ImageSource source) async {
     try {
+      late ImageData profilePicture;
       final XFile? pickedFile = await _imagePicker.pickImage(
         source: source,
         maxWidth: 1024,
@@ -906,8 +920,23 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       );
 
       if (pickedFile != null) {
+        if (kIsWeb) {
+          final bytes = await pickedFile.readAsBytes();
+          profilePicture = ImageData(
+            bytes: bytes,
+            name: pickedFile.name,
+            mimeType: pickedFile.mimeType,
+          );
+        } else {
+          profilePicture = ImageData(
+            file: File(pickedFile.path),
+            name: pickedFile.name,
+            mimeType: pickedFile.mimeType,
+          );
+        }
+
         setState(() {
-          _newProfilePicture = File(pickedFile.path);
+          _newProfilePicture = profilePicture;
           _hasProfilePictureChanged = true;
         });
       }
@@ -946,9 +975,21 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
               : 'Female'
         : widget.user.gender;
 
-    final attachments = _newProfilePicture != null
-        ? [_newProfilePicture!]
-        : null;
+    List<MultipartFile> multipartFiles = [];
+
+    if (_newProfilePicture != null) {
+      if (kIsWeb && _newProfilePicture!.bytes != null) {
+        multipartFiles.add(
+          MultipartFile.fromBytes(
+            _newProfilePicture!.bytes!,
+            filename: _newProfilePicture!.displayName,
+            contentType: DioMediaType.parse(
+              _newProfilePicture!.mimeType ?? 'image/jpeg',
+            ),
+          ),
+        );
+      }
+    }
 
     try {
       final user = UpdateUserRequest(
@@ -959,7 +1000,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         phone: phone,
         dateOfBirth: dateOfBirth,
         gender: gender,
-        attachments: attachments,
+        attachments: multipartFiles,
       );
 
       final result = await _authService.updateProfile(user);

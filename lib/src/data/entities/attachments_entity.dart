@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 class Attachment {
-  String id, originalName, mimeType, url;
-  int fileSize;
+  String originalName, mimeType, url;
+  int id, fileSize;
 
   Attachment({
     required this.id,
@@ -17,10 +17,10 @@ class Attachment {
   factory Attachment.fromJson(Map<String, dynamic> json) {
     return Attachment(
       id: json['id'],
-      originalName: json['originalName'],
-      mimeType: json['mimeType'],
+      originalName: json['original_name'],
+      mimeType: json['mime_type'],
       url: json['url'],
-      fileSize: json['fileSize'],
+      fileSize: json['file_size'],
     );
   }
 }

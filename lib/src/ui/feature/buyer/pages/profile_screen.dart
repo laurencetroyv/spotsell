@@ -105,7 +105,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!kIsWeb) {
       if (Platform.isMacOS || Platform.isIOS) {
         return CupertinoNavigationBar(
-          backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
+          automaticallyImplyLeading: false,
           middle: Text(
             'Profile',
             style: CupertinoTheme.of(context).textTheme.navTitleTextStyle,
@@ -179,25 +179,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(responsive.horizontalPadding),
-      child: Column(
-        children: [
-          SizedBox(height: responsive.mediumSpacing),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: responsive.screenHeight),
+        child: Column(
+          children: [
+            SizedBox(height: responsive.mediumSpacing),
 
-          ProfileInfoCard(
-            user: _user,
-            viewModel: _viewModel,
-            authService: _authService,
-          ),
-          SizedBox(height: responsive.largeSpacing),
+            ProfileInfoCard(
+              user: _user,
+              viewModel: _viewModel,
+              authService: _authService,
+            ),
+            SizedBox(height: responsive.largeSpacing),
 
-          if (_authService.isSeller)
-            if (_viewModel.userStores.isEmpty)
-              AdaptiveProgressRing()
-            else ...[
-              _buildStoresSection(context, responsive),
-              SizedBox(height: responsive.largeSpacing),
-            ],
-        ],
+            if (_authService.isSeller)
+              if (_viewModel.userStores.isEmpty)
+                AdaptiveProgressRing()
+              else ...[
+                _buildStoresSection(context, responsive),
+                SizedBox(height: responsive.largeSpacing),
+              ],
+          ],
+        ),
       ),
     );
   }

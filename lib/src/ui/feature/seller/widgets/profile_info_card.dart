@@ -197,17 +197,7 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
                   onPressed: _handleEditStoreDetails,
                   type: AdaptiveButtonType.secondary,
                   size: AdaptiveButtonSize.medium,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        ThemeUtils.getAdaptiveIcon(AdaptiveIcon.settings),
-                        size: 16,
-                      ),
-                      const SizedBox(width: 8),
-                      const Text('Edit Store'),
-                    ],
-                  ),
+                  child: const Text('Edit Store'),
                 ),
               ),
               SizedBox(width: responsive.mediumSpacing),
@@ -217,18 +207,7 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
                   onPressed: _switchToBuyer,
                   type: AdaptiveButtonType.primary,
                   size: AdaptiveButtonSize.medium,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _authService.isSeller ? Icons.store : Icons.storefront,
-                        size: 16,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(width: 8),
-                      Text('Switch to Buyer'),
-                    ],
-                  ),
+                  child: Text('Switch to Buyer'),
                 ),
               ),
             ],

@@ -152,7 +152,7 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
     ResponsiveBreakpoints responsive,
   ) {
     if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
+      if (Platform.isMacOS) {
         return null; // iOS doesn't use FABs typically
       }
 

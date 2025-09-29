@@ -4,7 +4,7 @@ import 'package:spotsell/src/data/entities/entities.dart';
 
 enum Condition { superNew, likeNew, good, fair, poor }
 
-enum Status { available, solid, reserved, hidden }
+enum Status { available, sold, reserved, hidden }
 
 class Product {
   final int? id;
@@ -32,6 +32,15 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
+    late List<Attachment>? attachments;
+
+    if (json['attachments'] != null) {
+      attachments = List.from(
+        json['attachments'],
+      ).map((e) => Attachment.fromJson(e)).toList();
+    } else {
+      attachments = null;
+    }
     return Product(
       id: json['id'],
       title: json['title'],
@@ -40,9 +49,7 @@ class Product {
       condition: getCondition(json['condition']),
       status: getStatus(json['status']),
       store: json['store'] != null ? Store.fromJson(json['store']) : null,
-      attachments: json['attachments'] != null
-          ? List.castFrom(json['attachments'])
-          : null,
+      attachments: attachments,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
@@ -110,8 +117,8 @@ class Product {
     switch (status) {
       case 'available':
         return Status.available;
-      case 'solid':
-        return Status.solid;
+      case 'sold':
+        return Status.sold;
       case 'reserved':
         return Status.reserved;
       default:
@@ -123,8 +130,8 @@ class Product {
     switch (status) {
       case Status.available:
         return 'available';
-      case Status.solid:
-        return 'solid';
+      case Status.sold:
+        return 'sold';
       case Status.reserved:
         return 'reserved';
       case Status.hidden:
@@ -136,8 +143,8 @@ class Product {
     switch (status) {
       case Status.available:
         return 'Available';
-      case Status.solid:
-        return 'Solid';
+      case Status.sold:
+        return 'Sold';
       case Status.reserved:
         return 'Reserved';
       case Status.hidden:
@@ -149,7 +156,7 @@ class Product {
 class ProductsMeta extends Meta {
   final List<Condition>? filterByCondition;
   final List<Status>? filterByStatus;
-  final List<String>? withMeta;
+  final List<WithMeta>? withMeta;
   final int? storeId;
 
   ProductsMeta({

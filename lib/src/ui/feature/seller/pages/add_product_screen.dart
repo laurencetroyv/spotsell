@@ -42,17 +42,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
     _viewModel.store = ModalRoute.of(context)!.settings.arguments! as Store;
     final responsive = ResponsiveBreakpoints.of(context);
 
-    return SafeArea(
-      child: ListenableBuilder(
-        listenable: _viewModel,
-        builder: (context, _) {
-          return AdaptiveScaffold(
-            appBar: _buildAppBar(context),
-            isLoading: _viewModel.isLoading,
-            child: _buildScrollableContent(context, responsive),
-          );
-        },
-      ),
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, _) {
+        return AdaptiveScaffold(
+          appBar: _buildAppBar(context),
+          isLoading: _viewModel.isLoading,
+          child: _buildScrollableContent(context, responsive),
+        );
+      },
     );
   }
 
@@ -69,9 +67,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
 
     if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) return null;
-
-      return widget;
+      if (Platform.isMacOS || Platform.isIOS) {
+        return CupertinoNavigationBar(
+          middle: const Text('Add Product'),
+          leading: CupertinoNavigationBarBackButton(
+            onPressed: () => Navigator.pop(context),
+          ),
+        );
+        // return null;
+      }
     }
 
     return widget;
@@ -596,6 +600,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     return GridView.builder(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,

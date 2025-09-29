@@ -15,6 +15,7 @@ import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/data/repositories/product_repository.dart';
 import 'package:spotsell/src/ui/feature/buyer/view_models/explore_view_model.dart';
 import 'package:spotsell/src/ui/feature/buyer/widgets/item_card.dart';
+import 'package:spotsell/src/ui/shared/widgets/adaptive_progress_ring.dart';
 import 'package:spotsell/src/ui/shared/widgets/adaptive_text_field.dart';
 import 'package:spotsell/src/ui/shell/adaptive_scaffold.dart';
 
@@ -48,31 +49,36 @@ class _ExploreScreenState extends State<ExploreScreen>
   @override
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
-    return SafeArea(
-      child: AdaptiveScaffold(
-        appBar: responsive.shouldShowNavigationRail
-            ? null
-            : _buildAppBar(context),
-        child: ListenableBuilder(
-          listenable: _viewModel,
-          builder: (context, child) {
-            if (_viewModel.products.isEmpty) {
-              return _buildEmptyState(context);
-            }
 
-            _viewModel.tabController = TabController(
-              length: _viewModel.tabs.length,
-              vsync: this,
-            );
+    return AdaptiveScaffold(
+      appBar: responsive.shouldShowNavigationRail
+          ? null
+          : _buildAppBar(context),
+      child: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, child) {
+          if (_viewModel.isLoading) {
+            return SafeArea(child: Center(child: AdaptiveProgressRing()));
+          }
 
-            return Column(
+          if (_viewModel.products.isEmpty) {
+            return _buildEmptyState(context);
+          }
+
+          _viewModel.tabController = TabController(
+            length: _viewModel.tabs.length,
+            vsync: this,
+          );
+
+          return SafeArea(
+            child: Column(
               children: [
                 _buildTabSection(context, responsive),
                 Expanded(child: _buildProductGrid(context, responsive)),
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -80,37 +86,30 @@ class _ExploreScreenState extends State<ExploreScreen>
   PreferredSizeWidget? _buildAppBar(BuildContext context) {
     if (!kIsWeb) {
       if (Platform.isMacOS || Platform.isIOS) {
-        return null;
-        // return CupertinoNavigationBar(
-        //   backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
-        //   leading: CupertinoNavigationBarBackButton(
-        //     onPressed: () {
-        //       // Handle menu tap
-        //     },
-        //   ),
-        //   middle: AdaptiveTextField(
-        //     controller: _viewModel.searchController,
-        //     placeholder: 'Search product',
-        //     prefixIcon: CupertinoIcons.search,
-        //     width: 200,
-        //     onChanged: _handleSearch,
-        //   ),
-        //   trailing: Row(
-        //     mainAxisSize: MainAxisSize.min,
-        //     children: [
-        //       CupertinoButton(
-        //         padding: EdgeInsets.zero,
-        //         onPressed: _handleFilter,
-        //         child: const Icon(CupertinoIcons.slider_horizontal_3),
-        //       ),
-        //       CupertinoButton(
-        //         padding: EdgeInsets.zero,
-        //         onPressed: _handleNotifications,
-        //         child: const Icon(CupertinoIcons.bell),
-        //       ),
-        //     ],
-        //   ),
-        // );
+        return CupertinoNavigationBar(
+          automaticallyImplyLeading: false,
+          middle: AdaptiveTextField(
+            controller: _viewModel.searchController,
+            placeholder: 'Search product',
+            prefixIcon: CupertinoIcons.search,
+            onChanged: _handleSearch,
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: _handleFilter,
+                child: const Icon(CupertinoIcons.slider_horizontal_3),
+              ),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: _handleNotifications,
+                child: const Icon(CupertinoIcons.bell),
+              ),
+            ],
+          ),
+        );
       }
 
       if (Platform.isWindows) {
@@ -207,6 +206,7 @@ class _ExploreScreenState extends State<ExploreScreen>
               _viewModel.tabController.animateTo(value);
             }
           },
+          proportionalWidth: true,
           children: Map.fromEntries(
             _viewModel.tabs.asMap().entries.map(
               (entry) => MapEntry(

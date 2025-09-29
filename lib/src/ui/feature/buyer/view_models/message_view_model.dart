@@ -9,6 +9,7 @@ import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 
 class MessageViewModel extends BaseViewModel {
   late MessageRepository _repository;
+  late bool _isSeller;
 
   final TextEditingController messageController = TextEditingController();
   final ScrollController scrollController = ScrollController();
@@ -34,8 +35,9 @@ class MessageViewModel extends BaseViewModel {
     super.dispose();
   }
 
-  void setConversationId(num conversationId) {
+  void setConversationId(num conversationId, bool isSeller) {
     _conversationId = conversationId;
+    _isSeller = isSeller;
     _loadMessages();
     _startAutoRefresh();
   }
@@ -63,10 +65,10 @@ class MessageViewModel extends BaseViewModel {
     final request = Meta(perPage: 15, page: 1);
 
     final success = await executeAsyncResult<List<Message>>(
-      () => _repository.getAllMessages(request, _conversationId!, false),
+      () => _repository.getAllMessages(request, _conversationId!, _isSeller),
       errorMessage: 'Failed to load messages',
       onSuccess: (messages) {
-        _messages = [];
+        _messages = messages;
         _scrollToBottom();
       },
     );
@@ -85,7 +87,7 @@ class MessageViewModel extends BaseViewModel {
     messageController.clear();
 
     final success = await executeAsyncResult<Message>(
-      () => _repository.createMessage(request, _conversationId!, false),
+      () => _repository.createMessage(request, _conversationId!, _isSeller),
       errorMessage: 'Failed to send message',
       onSuccess: (sentMessage) {
         _messages.add(sentMessage);
@@ -122,7 +124,7 @@ class MessageViewModel extends BaseViewModel {
 
     // Load messages without showing loading indicator
     final success = await executeAsyncResult<List<Message>>(
-      () => _repository.getAllMessages(request, _conversationId!, false),
+      () => _repository.getAllMessages(request, _conversationId!, _isSeller),
       errorMessage: 'Failed to load messages',
       showLoading: false, // Don't show loading for automatic refresh
       onSuccess: (messages) {

@@ -31,10 +31,12 @@ class _MessageScreenState extends State<MessageScreen> {
     super.didChangeDependencies();
     _conversation = ModalRoute.of(context)!.settings.arguments! as Conversation;
 
+    final isSeller = _conversation.buyer != null;
+
     _viewModel = MessageViewModel();
     _authService = getService<AuthService>();
     _viewModel.initialize();
-    _viewModel.setConversationId(_conversation.id);
+    _viewModel.setConversationId(_conversation.id, isSeller);
   }
 
   @override

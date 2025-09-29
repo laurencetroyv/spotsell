@@ -118,7 +118,7 @@ class MessageViewModel extends BaseViewModel {
   Future<void> refreshConversationSilently() async {
     if (_conversationId == null) return;
 
-    final request = Meta(perPage: 15, page: 1);
+    final request = Meta(perPage: 3, page: 1);
 
     // Load messages without showing loading indicator
     final success = await executeAsyncResult<List<Message>>(

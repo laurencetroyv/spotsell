@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
-import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/data/repositories/conversation_repository.dart';
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
@@ -39,6 +38,7 @@ class ConversationViewModel extends BaseViewModel {
   @override
   void initialize() {
     super.initialize();
+    _repository = getService<ConversationRepository>();
     _initializeRepository();
   }
 
@@ -49,21 +49,19 @@ class ConversationViewModel extends BaseViewModel {
   }
 
   Future<void> _initializeRepository() async {
-    try {
-      _repository = getService<ConversationRepository>();
+    final request = BuyerConversationMeta(showAll: true);
 
-      final request = BuyerConversationMeta(showAll: true);
+    final response = await executeAsyncResult<List<Conversation>>(
+      () => _repository.showBuyerListAllMessage(request),
+      showLoading: false,
+      onSuccess: (conversations) {
+        this.conversations = conversations;
+        safeNotifyListeners();
+      },
+    );
 
-      final response = await _repository.showBuyerListAllMessage(request);
-
-      switch (response) {
-        case Ok<List<Conversation>>():
-          conversations = response.value;
-        case Error<List<Conversation>>():
-          conversations = [];
-      }
-    } catch (e) {
-      debugPrint('Error initializing converation repository: $e');
+    if (!response) {
+      debugPrint('Failed to load conversations');
     }
   }
 }

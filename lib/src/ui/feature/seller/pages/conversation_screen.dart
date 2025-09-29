@@ -1,8 +1,11 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
+import 'package:spotsell/src/core/navigation/route_names.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
 import 'package:spotsell/src/data/entities/entities.dart';
@@ -35,16 +38,21 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    return SafeArea(
-      child: AdaptiveScaffold(
-        backgroundColor: ThemeUtils.getBackgroundColor(context),
-        appBar: _buildAppBar(context, responsive),
-        child: Column(
-          children: [
-            _buildSearchBar(context, responsive),
-            Expanded(child: _buildChatList(context, responsive)),
-          ],
-        ),
+    return AdaptiveScaffold(
+      isLoading: _viewModel.isLoading,
+      appBar: _buildAppBar(context, responsive),
+      child: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, _) {
+          return SafeArea(
+            child: Column(
+              children: [
+                _buildSearchBar(context, responsive),
+                Expanded(child: _buildChatList(context, responsive)),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -76,57 +84,16 @@ class _ConversationScreenState extends State<ConversationScreen> {
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
-    return Container(
+    return Padding(
       padding: EdgeInsets.all(responsive.mediumSpacing),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: responsive.mediumSpacing,
-          vertical: responsive.smallSpacing,
-        ),
-        decoration: BoxDecoration(
-          color: ThemeUtils.getSurfaceColor(context),
-          borderRadius: ThemeUtils.getAdaptiveBorderRadius(context),
-          border: Border.all(
-            color: ThemeUtils.getTextColor(context).withValues(alpha: 0.1),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              ThemeUtils.getAdaptiveIcon(AdaptiveIcon.search),
-              color: ThemeUtils.getTextColor(context).withValues(alpha: 0.5),
-              size: 20,
-            ),
-            SizedBox(width: responsive.smallSpacing),
-            Expanded(
-              child: AdaptiveTextField(
-                controller: _viewModel.controller,
-                onChanged: (value) {
-                  setState(() {
-                    _viewModel.searchQuery = value;
-                  });
-                },
-                placeholder: 'Search messages...',
-              ),
-            ),
-            if (_viewModel.searchQuery.isNotEmpty)
-              GestureDetector(
-                onTap: () {
-                  _viewModel.controller.clear();
-                  setState(() {
-                    _viewModel.searchQuery = '';
-                  });
-                },
-                child: Icon(
-                  ThemeUtils.getAdaptiveIcon(AdaptiveIcon.close),
-                  color: ThemeUtils.getTextColor(
-                    context,
-                  ).withValues(alpha: 0.5),
-                  size: 20,
-                ),
-              ),
-          ],
-        ),
+      child: AdaptiveTextField(
+        controller: _viewModel.controller,
+        onChanged: (value) {
+          setState(() {
+            _viewModel.searchQuery = value;
+          });
+        },
+        placeholder: 'Search messages...',
       ),
     );
   }
@@ -222,7 +189,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              chat.buyer?.username ?? '',
+                              chat.buyer?.name ?? '',
                               style: ThemeUtils.getAdaptiveTextStyle(
                                 context,
                                 TextStyleType.body,
@@ -250,7 +217,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       ),
                       SizedBox(height: 2),
                       Text(
-                        chat.buyer?.username ?? '',
+                        chat.buyer?.email ?? '',
                         style: ThemeUtils.getAdaptiveTextStyle(
                           context,
                           TextStyleType.caption,
@@ -342,8 +309,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   }
 
   void _openChat(Conversation chat) {
-    // TODO: Navigate to individual chat screen
-    debugPrint('Opening chat with ${chat.buyer?.username}');
+    context.pushNamed(RouteNames.message, arguments: chat);
   }
 
   @override

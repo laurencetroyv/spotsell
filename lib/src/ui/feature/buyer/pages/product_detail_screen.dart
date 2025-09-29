@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
@@ -69,10 +70,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
       return CupertinoNavigationBar(
-        backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
         leading: CupertinoNavigationBarBackButton(
           onPressed: () => Navigator.of(context).pop(),
         ),
+        middle: Text(product.title),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -119,7 +120,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         SliverToBoxAdapter(child: _buildStoreInfo(context, responsive)),
 
         // Action Buttons
-        SliverToBoxAdapter(child: _buildActionButtons(context, responsive)),
+        if (_viewModel.user != null &&
+            _viewModel.user?.id == product.store?.seller?.id)
+          SliverToBoxAdapter(child: _buildActionButtons(context, responsive)),
 
         // Recommendations Header
         SliverToBoxAdapter(
@@ -467,7 +470,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Future<void> _handleContact() async {
-    context.pushNamed(RouteNames.message, arguments: product);
+    final phone = product.store!.phone;
+
+    final url = Uri(scheme: 'tel', path: phone);
+
+    if (!await launchUrl(url)) {
+      debugPrint('Unable to open contact');
+    }
   }
 
   void _handleViewAllProducts() {

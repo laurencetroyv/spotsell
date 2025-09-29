@@ -9,12 +9,16 @@ class ResponsiveBreakpoints {
   static const double wideBreakpoint = 1600;
 
   static ResponsiveBreakpoints of(BuildContext context) {
-    return ResponsiveBreakpoints._(MediaQuery.of(context).size.width);
+    return ResponsiveBreakpoints._(
+      MediaQuery.of(context).size.width,
+      MediaQuery.of(context).size.height,
+    );
   }
 
-  const ResponsiveBreakpoints._(this.screenWidth);
+  const ResponsiveBreakpoints._(this.screenWidth, this.screenHeight);
 
   final double screenWidth;
+  final double screenHeight;
 
   bool get isMobile => screenWidth < mobileBreakpoint;
   bool get isTablet =>

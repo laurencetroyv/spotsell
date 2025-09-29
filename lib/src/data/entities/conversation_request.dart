@@ -24,7 +24,9 @@ class Conversation {
       id: json['id'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
-      buyer: json['buyer'] != null ? AuthUser.fromJson(json['buyer']) : null,
+      buyer: json['buyer'] != null
+          ? AuthUser.fromJson(json['buyer'], fromMessage: true)
+          : null,
       seller: json['store'] != null ? Store.fromJson(json['store']) : null,
       latestMessage: json['latest_message'] != null
           ? Message.fromJson(json['latest_message'])

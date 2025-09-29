@@ -148,8 +148,6 @@ class ThemeManager {
 
   // Fluent Theme
   static fl.FluentThemeData fluentLightTheme(BuildContext context) {
-    final responsive = ResponsiveBreakpoints.of(context);
-
     return fl.FluentThemeData.light().copyWith(
       accentColor: fl.AccentColor.swatch({
         'darkest': const Color(0xFF8B2914),
@@ -182,8 +180,6 @@ class ThemeManager {
   }
 
   static fl.FluentThemeData fluentDarkTheme(BuildContext context) {
-    final responsive = ResponsiveBreakpoints.of(context);
-
     return fl.FluentThemeData.dark().copyWith(
       accentColor: fl.AccentColor.swatch({
         'darkest': const Color(0xFF8B2914),

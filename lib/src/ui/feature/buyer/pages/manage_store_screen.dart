@@ -75,16 +75,11 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
     return ListenableBuilder(
       listenable: _viewModel,
       builder: (context, child) {
-        return SafeArea(
-          child: AdaptiveScaffold(
-            isLoading: isLoading,
-            appBar: _buildAppBar(context, responsive),
-            floatingActionButton: _buildFloatingActionButton(
-              context,
-              responsive,
-            ),
-            child: _buildBody(context, responsive),
-          ),
+        return AdaptiveScaffold(
+          isLoading: isLoading,
+          appBar: _buildAppBar(context, responsive),
+          floatingActionButton: _buildFloatingActionButton(context, responsive),
+          child: SafeArea(child: _buildBody(context, responsive)),
         );
       },
     );
@@ -96,7 +91,7 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
   ) {
     if (!kIsWeb) {
       if (Platform.isMacOS || Platform.isIOS) {
-        CupertinoNavigationBar(
+        return CupertinoNavigationBar(
           middle: Text('Manage Stores'),
           leading: CupertinoButton(
             padding: EdgeInsets.zero,

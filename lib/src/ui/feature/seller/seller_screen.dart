@@ -21,15 +21,25 @@ class SellerScreen extends StatefulWidget {
 }
 
 class _SellerScreenState extends State<SellerScreen> {
+  late Store _store;
   late SellerViewModel _viewModel;
   late AuthService _authService;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    _store = ModalRoute.of(context)!.settings.arguments! as Store;
+
     _viewModel = SellerViewModel();
     _viewModel.initialize();
     _initialzeAuth();
+
+    _viewModel.pages = [
+      ConversationScreen(_store),
+      ProductsScreen(_store),
+      ProfileScreen(_store, authService: _authService),
+    ];
   }
 
   Future<void> _initialzeAuth() async {
@@ -48,25 +58,12 @@ class _SellerScreenState extends State<SellerScreen> {
   @override
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
-    final store = ModalRoute.of(context)!.settings.arguments! as Store;
 
     final navigationRail = !kIsWeb && Platform.isWindows;
 
-    setState(() {
-      _viewModel.pages = [
-        ConversationScreen(store),
-        ProductsScreen(store),
-        ProfileScreen(store, authService: _authService),
-      ];
-    });
-
     return AdaptiveScaffold(
       appBar: _viewModel.selectedNavIndex != 2
-          ? AppBar(
-              title: Text("${store.name} Store"),
-              centerTitle: true,
-              automaticallyImplyLeading: false,
-            )
+          ? _buildAppBar(context, responsive)
           : null,
       navigationRail: navigationRail || responsive.shouldShowNavigationRail
           ? _buildNavigationRail(context)
@@ -77,6 +74,26 @@ class _SellerScreenState extends State<SellerScreen> {
       child: _buildMainContent(context, responsive),
       children: _viewModel.pages,
       signOut: () => _authService.signOut(),
+    );
+  }
+
+  PreferredSizeWidget? _buildAppBar(
+    BuildContext context,
+    ResponsiveBreakpoints responsive,
+  ) {
+    if (!kIsWeb) {
+      if (Platform.isMacOS || Platform.isIOS) {
+        return CupertinoNavigationBar(
+          middle: Text("${_store.name} Store"),
+          automaticallyImplyLeading: false,
+        );
+      }
+    }
+
+    return AppBar(
+      title: Text("${_store.name} Store"),
+      centerTitle: true,
+      automaticallyImplyLeading: false,
     );
   }
 

@@ -48,66 +48,69 @@ class _ExploreScreenState extends State<ExploreScreen>
   @override
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
-    return AdaptiveScaffold(
-      appBar: responsive.shouldShowNavigationRail
-          ? null
-          : _buildAppBar(context),
-      child: ListenableBuilder(
-        listenable: _viewModel,
-        builder: (context, child) {
-          if (_viewModel.products.isEmpty) {
-            return _buildEmptyState(context);
-          }
+    return SafeArea(
+      child: AdaptiveScaffold(
+        appBar: responsive.shouldShowNavigationRail
+            ? null
+            : _buildAppBar(context),
+        child: ListenableBuilder(
+          listenable: _viewModel,
+          builder: (context, child) {
+            if (_viewModel.products.isEmpty) {
+              return _buildEmptyState(context);
+            }
 
-          _viewModel.tabController = TabController(
-            length: _viewModel.tabs.length,
-            vsync: this,
-          );
+            _viewModel.tabController = TabController(
+              length: _viewModel.tabs.length,
+              vsync: this,
+            );
 
-          return Column(
-            children: [
-              _buildTabSection(context, responsive),
-              Expanded(child: _buildProductGrid(context, responsive)),
-            ],
-          );
-        },
+            return Column(
+              children: [
+                _buildTabSection(context, responsive),
+                Expanded(child: _buildProductGrid(context, responsive)),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
+  PreferredSizeWidget? _buildAppBar(BuildContext context) {
     if (!kIsWeb) {
       if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoNavigationBar(
-          backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
-          leading: CupertinoNavigationBarBackButton(
-            onPressed: () {
-              // Handle menu tap
-            },
-          ),
-          middle: AdaptiveTextField(
-            controller: _viewModel.searchController,
-            placeholder: 'Search product',
-            prefixIcon: CupertinoIcons.search,
-            width: 200,
-            onChanged: _handleSearch,
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: _handleFilter,
-                child: const Icon(CupertinoIcons.slider_horizontal_3),
-              ),
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: _handleNotifications,
-                child: const Icon(CupertinoIcons.bell),
-              ),
-            ],
-          ),
-        );
+        return null;
+        // return CupertinoNavigationBar(
+        //   backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
+        //   leading: CupertinoNavigationBarBackButton(
+        //     onPressed: () {
+        //       // Handle menu tap
+        //     },
+        //   ),
+        //   middle: AdaptiveTextField(
+        //     controller: _viewModel.searchController,
+        //     placeholder: 'Search product',
+        //     prefixIcon: CupertinoIcons.search,
+        //     width: 200,
+        //     onChanged: _handleSearch,
+        //   ),
+        //   trailing: Row(
+        //     mainAxisSize: MainAxisSize.min,
+        //     children: [
+        //       CupertinoButton(
+        //         padding: EdgeInsets.zero,
+        //         onPressed: _handleFilter,
+        //         child: const Icon(CupertinoIcons.slider_horizontal_3),
+        //       ),
+        //       CupertinoButton(
+        //         padding: EdgeInsets.zero,
+        //         onPressed: _handleNotifications,
+        //         child: const Icon(CupertinoIcons.bell),
+        //       ),
+        //     ],
+        //   ),
+        // );
       }
 
       if (Platform.isWindows) {
@@ -258,6 +261,35 @@ class _ExploreScreenState extends State<ExploreScreen>
 
     if (_viewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
+    }
+
+    if (!kIsWeb && (Platform.isMacOS || Platform.isIOS)) {
+      return CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          CupertinoSliverRefreshControl(
+            onRefresh: () => _handleRefresh(tabName),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.all(responsive.mediumSpacing),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: responsive.gridCrossAxisCount,
+                childAspectRatio: 0.75,
+                crossAxisSpacing: responsive.mediumSpacing,
+                mainAxisSpacing: responsive.mediumSpacing,
+              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final product = filteredProducts[index];
+                return ItemCard(
+                  product: product,
+                  onTap: () => _handleProductTap(product),
+                );
+              }, childCount: filteredProducts.length),
+            ),
+          ),
+        ],
+      );
     }
 
     return RefreshIndicator(

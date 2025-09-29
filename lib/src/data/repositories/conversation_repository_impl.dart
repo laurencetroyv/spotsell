@@ -231,7 +231,7 @@ class ConversationRepositoryImpl implements ConversationRepository {
       if (response.statusCode == 200) {
         final conversation = List.from(
           response.data['data'],
-        ).map((e) => Conversation.fromJson(response.data)).toList();
+        ).map((e) => Conversation.fromJson(e)).toList();
         return Result.ok(conversation);
       } else {
         return Result.error(Exception('Failed to fetch seller conversations'));

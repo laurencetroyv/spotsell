@@ -77,7 +77,8 @@ class UpdateUserRequest {
 
 class AuthUser {
   final int id;
-  final String firstName, lastName, username, email, gender, token, phone;
+  final String firstName, lastName, username, email, gender, phone;
+  final String? token;
   final List<String>? role;
   final DateTime dateOfBirth, createdAt, updatedAt;
   final DateTime? verifiedAt;
@@ -93,7 +94,7 @@ class AuthUser {
     required this.phone,
     this.role,
     required this.dateOfBirth,
-    required this.token,
+    this.token,
     required this.createdAt,
     required this.updatedAt,
     this.verifiedAt,

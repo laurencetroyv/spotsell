@@ -44,10 +44,10 @@ class _MessageScreenState extends State<MessageScreen> {
     return ListenableBuilder(
       listenable: _viewModel,
       builder: (context, _) {
-        return SafeArea(
-          child: AdaptiveScaffold(
-            backgroundColor: ThemeUtils.getBackgroundColor(context),
-            appBar: _buildAppBar(context, responsive),
+        return AdaptiveScaffold(
+          isLoading: _viewModel.isLoading,
+          appBar: _buildAppBar(context, responsive),
+          child: SafeArea(
             child: Column(
               children: [
                 Expanded(child: _buildMessageList(context, responsive)),
@@ -64,15 +64,13 @@ class _MessageScreenState extends State<MessageScreen> {
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
-    final title = _conversation.seller!.name;
+    final title = _conversation.seller?.name ?? _conversation.buyer?.name ?? '';
 
     if (!kIsWeb) {
       if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoNavigationBar(
-          middle: Text(title),
-          backgroundColor: ThemeUtils.getBackgroundColor(context),
-        );
+        return CupertinoNavigationBar(middle: Text(title));
       }
+
       if (Platform.isWindows) {
         return null; // Fluent UI handles its own navigation
       }
@@ -331,22 +329,21 @@ class _MessageScreenState extends State<MessageScreen> {
         ),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: AdaptiveTextField(
               controller: _viewModel.messageController,
               placeholder: 'Type a message...',
-              maxLines: 3,
               onSubmitted: (_) => _sendMessage(),
             ),
           ),
           SizedBox(width: responsive.smallSpacing),
-          AdaptiveButton(
-            onPressed: _sendMessage,
-            isLoading: _viewModel.isLoading,
-            icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.send), size: 20),
-            child: const Text('Send'),
+          GestureDetector(
+            onTap: () {
+              _sendMessage();
+            },
+            child: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.send)),
           ),
         ],
       ),
@@ -370,9 +367,9 @@ class _MessageScreenState extends State<MessageScreen> {
     }
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     if (_viewModel.messageController.text.trim().isNotEmpty) {
-      _viewModel.sendMessage();
+      await _viewModel.sendMessage();
     }
   }
 

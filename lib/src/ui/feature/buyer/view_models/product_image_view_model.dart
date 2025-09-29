@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/entities.dart';
+import 'package:spotsell/src/data/repositories/auth_repository.dart';
 import 'package:spotsell/src/data/repositories/conversation_repository.dart';
 import 'package:spotsell/src/data/repositories/product_repository.dart';
+import 'package:spotsell/src/data/services/auth_service.dart';
 import 'package:spotsell/src/ui/shared/view_model/base_view_model.dart';
 
 class ProductDetailViewModel extends BaseViewModel {
@@ -18,10 +20,12 @@ class ProductDetailViewModel extends BaseViewModel {
   int _storeProductCount = 0;
 
   // Repository
+  late AuthService _service;
   late ProductRepository _productRepository;
   late ConversationRepository _conversationRepository;
 
   // Getters
+  AuthUser? get user => _service.currentUser;
   Product? get product => _product;
   Map<String, String>? get productItem => _productItem;
   List<String> get productImages => _productImages;
@@ -63,6 +67,7 @@ class ProductDetailViewModel extends BaseViewModel {
   void initialize() {
     super.initialize();
 
+    _service = getService<AuthService>();
     _productRepository = getService<ProductRepository>();
     _conversationRepository = getService<ConversationRepository>();
   }
@@ -119,7 +124,8 @@ class ProductDetailViewModel extends BaseViewModel {
       final request = ProductsMeta(
         storeId: _product!.store!.id,
         showAll: true,
-        perPage: 6,
+        perPage: 15,
+        withMeta: ['store', 'categories'],
       );
 
       final result = await _productRepository.getPublicProducts(request);

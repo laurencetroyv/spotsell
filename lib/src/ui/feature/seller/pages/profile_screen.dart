@@ -45,10 +45,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    return AdaptiveScaffold(
-      isLoading: _viewModel.isLoading,
-      appBar: _buildAppBar(context, responsive),
-      child: _buildProfileContent(context, responsive),
+    return SafeArea(
+      child: AdaptiveScaffold(
+        isLoading: _viewModel.isLoading,
+        appBar: _buildAppBar(context, responsive),
+        child: _buildProfileContent(context, responsive),
+      ),
     );
   }
 
@@ -62,7 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!kIsWeb) {
       if (Platform.isMacOS || Platform.isIOS) {
         return CupertinoNavigationBar(
-          backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
+          automaticallyImplyLeading: false,
           middle: Text(
             'Store Profile',
             style: CupertinoTheme.of(context).textTheme.navTitleTextStyle,
@@ -136,19 +138,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(responsive.horizontalPadding),
-      child: Column(
-        children: [
-          SizedBox(height: responsive.mediumSpacing),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: responsive.screenHeight),
+        child: Column(
+          children: [
+            SizedBox(height: responsive.mediumSpacing),
 
-          ProfileInfoCard(
-            user: _user,
-            store: _store,
-            authService: _authService,
-          ),
-          SizedBox(height: responsive.largeSpacing),
+            ProfileInfoCard(
+              user: _user,
+              store: _store,
+              authService: _authService,
+            ),
+            SizedBox(height: responsive.largeSpacing),
 
-          SizedBox(height: responsive.mediumSpacing),
-        ],
+            SizedBox(height: responsive.mediumSpacing),
+          ],
+        ),
       ),
     );
   }

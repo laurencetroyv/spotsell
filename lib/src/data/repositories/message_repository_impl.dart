@@ -127,7 +127,7 @@ class MessageRepositoryImpl implements MessageRepository {
       if (response.statusCode == 200) {
         final message = List.from(
           response.data['data'],
-        ).map((e) => Message.fromJson(e)).toList();
+        ).map((e) => Message.fromJson(e)).toList().reversed.toList();
         return Result.ok(message);
       } else {
         return Result.error(Exception('Failed to fetch message'));

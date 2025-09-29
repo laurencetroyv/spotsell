@@ -60,6 +60,7 @@ class _SignUpScreenState extends State<SignUpScreen>
     final responsive = ResponsiveBreakpoints.of(context);
 
     return AdaptiveScaffold(
+      appBar: _buildAppBar(context, responsive),
       child: SafeArea(
         child: ListenableBuilder(
           listenable: _viewModel,
@@ -82,6 +83,28 @@ class _SignUpScreenState extends State<SignUpScreen>
         ),
       ),
     );
+  }
+
+  PreferredSizeWidget? _buildAppBar(
+    BuildContext context,
+    ResponsiveBreakpoints responsive,
+  ) {
+    if (!kIsWeb) {
+      if (Platform.isIOS || Platform.isMacOS) {
+        return CupertinoNavigationBar(
+          automaticallyImplyLeading: false,
+          automaticBackgroundVisibility: false,
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          border: null,
+          middle: Text(
+            'Create Account',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          ),
+        );
+      }
+    }
+
+    return null;
   }
 
   Widget _buildDesktopLayout(
@@ -140,10 +163,55 @@ class _SignUpScreenState extends State<SignUpScreen>
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
+    if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+      return _buildCupertinoMobileLayout(context, responsive);
+    } else {
+      return _buildMaterialMobileLayout(context, responsive);
+    }
+  }
+
+  Widget _buildCupertinoMobileLayout(
+    BuildContext context,
+    ResponsiveBreakpoints responsive,
+  ) {
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-        // App Bar with branding
+        // Branding header
+        SliverToBoxAdapter(
+          child: Container(
+            height: 220,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                ],
+              ),
+            ),
+            child: _buildBrandingSection(context, false),
+          ),
+        ),
+        // Form content
+        SliverToBoxAdapter(
+          child: Container(
+            padding: EdgeInsets.all(responsive.horizontalPadding),
+            child: _buildSignUpForm(context, responsive, isDesktop: false),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMaterialMobileLayout(
+    BuildContext context,
+    ResponsiveBreakpoints responsive,
+  ) {
+    return CustomScrollView(
+      controller: _scrollController,
+      slivers: [
         SliverAppBar(
           expandedHeight: 250,
           floating: false,
@@ -175,6 +243,7 @@ class _SignUpScreenState extends State<SignUpScreen>
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
+
         // Form content
         SliverToBoxAdapter(
           child: Container(

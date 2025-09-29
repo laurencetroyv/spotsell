@@ -48,7 +48,7 @@ class ExploreViewModel extends BaseViewModel {
     try {
       final request = ProductsMeta(
         showAll: true,
-        withMeta: ['store', 'categories'],
+        withMeta: [WithMeta.store, WithMeta.categories, WithMeta.attachments],
       );
 
       await executeAsyncResult<List<Product>>(

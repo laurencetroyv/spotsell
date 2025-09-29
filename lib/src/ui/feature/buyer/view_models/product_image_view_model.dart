@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/utils/result.dart';
 import 'package:spotsell/src/data/entities/entities.dart';
-import 'package:spotsell/src/data/repositories/auth_repository.dart';
 import 'package:spotsell/src/data/repositories/conversation_repository.dart';
 import 'package:spotsell/src/data/repositories/product_repository.dart';
 import 'package:spotsell/src/data/services/auth_service.dart';
@@ -124,8 +123,8 @@ class ProductDetailViewModel extends BaseViewModel {
       final request = ProductsMeta(
         storeId: _product!.store!.id,
         showAll: true,
-        perPage: 15,
-        withMeta: ['store', 'categories'],
+        perPage: 6,
+        withMeta: [WithMeta.store, WithMeta.categories, WithMeta.attachments],
       );
 
       final result = await _productRepository.getPublicProducts(request);

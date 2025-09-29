@@ -268,7 +268,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
           width: 1,
         ),
       ),
-      child: chat.buyer?.attachments != null
+      child:
+          chat.buyer?.attachments != null && chat.buyer!.attachments!.isNotEmpty
           ? ClipOval(
               child: Image.network(
                 chat.buyer!.attachments!.first.url,

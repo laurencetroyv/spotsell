@@ -63,7 +63,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         }
       },
       backgroundColor: ThemeUtils.getPrimaryColor(context),
-      child: Icon(Icons.add, color: ThemeUtils.getTextColor(context)),
+      child: const Icon(Icons.add, color: Colors.white),
     );
   }
 

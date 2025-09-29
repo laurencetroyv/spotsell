@@ -102,6 +102,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildContent(BuildContext context, ResponsiveBreakpoints responsive) {
+    final showActionButtons =
+        _viewModel.user != null &&
+        _viewModel.user?.id == product.store?.seller?.id;
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
@@ -120,9 +123,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         SliverToBoxAdapter(child: _buildStoreInfo(context, responsive)),
 
         // Action Buttons
-        if (_viewModel.user != null &&
-            _viewModel.user?.id == product.store?.seller?.id)
-          SliverToBoxAdapter(child: _buildActionButtons(context, responsive)),
+        SliverToBoxAdapter(child: _buildActionButtons(context, responsive)),
 
         // Recommendations Header
         SliverToBoxAdapter(

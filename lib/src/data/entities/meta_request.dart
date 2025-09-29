@@ -1,5 +1,7 @@
 enum SortOrder { asc, desc }
 
+enum WithMeta { store, categories, attachments }
+
 class Meta {
   num? page = 1;
   num? perPage = 15;

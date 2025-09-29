@@ -75,8 +75,14 @@ class ProductRepositoryImpl implements ProductRepository {
 
       final data = request.toJson();
 
-      if (request.attachments != null && request.attachments!.isNotEmpty) {
-        data['attachments[]'] = request.attachments!;
+      if (request.images != null && request.images!.isNotEmpty) {
+        for (int i = 0; i < request.images!.length; i++) {
+          final contentType = request.images![i].contentType!;
+
+          data['attachments[$i][file]'] = request.images![i];
+
+          data['attachments[$i][type]'] = contentType.type;
+        }
       }
 
       final formData = FormData.fromMap(data);
@@ -174,7 +180,7 @@ class ProductRepositoryImpl implements ProductRepository {
 
       if (request.withMeta != null && request.withMeta!.isNotEmpty) {
         for (int i = 0; i < request.withMeta!.length; i++) {
-          queryParams['with[$i]'] = request.withMeta![i];
+          queryParams['with[$i]'] = request.withMeta![i].name;
         }
       }
 

@@ -70,7 +70,12 @@ class _MessageScreenState extends State<MessageScreen> {
 
     if (!kIsWeb) {
       if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoNavigationBar(middle: Text(title));
+        return CupertinoNavigationBar(
+          middle: Text(title),
+          leading: CupertinoNavigationBarBackButton(
+            onPressed: () => Navigator.pop(context),
+          ),
+        );
       }
 
       if (Platform.isWindows) {

@@ -8,7 +8,7 @@ import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
 import 'package:spotsell/src/data/entities/entities.dart';
 
-class ItemCard extends StatelessWidget {
+class ItemCard extends StatefulWidget {
   const ItemCard({super.key, required this.product, required this.onTap});
 
   final Product product;
@@ -16,18 +16,41 @@ class ItemCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<ItemCard> createState() => _ItemCardState();
+}
+
+class _ItemCardState extends State<ItemCard> {
+  late String title;
+  late String price;
+  late String condition;
+  late String seller;
+  late String heroTag;
+  late String imageUrlToUse;
+
+  @override
+  void initState() {
+    title = widget.product.title;
+    price = widget.product.price;
+    condition = widget.product.properCondition;
+    seller = widget.product.store?.name ?? 'Unknown Seller';
+    heroTag = '${widget.product.id}-${widget.product.title}';
+
+    if (widget.product.attachments != null &&
+        widget.product.attachments!.isNotEmpty) {
+      imageUrlToUse = widget.product.attachments!.first.url;
+    } else {
+      imageUrlToUse = '';
+    }
+
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    // Get data from either product or item
-    final title = product.title;
-    final price = product.price;
-    final condition = product.properCondition;
-    final seller = product.store?.name ?? 'Unknown Seller';
-    final imageUrlToUse = product.attachments;
-
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         decoration: _getCardDecoration(context),
         child: Column(
@@ -63,11 +86,23 @@ class ItemCard extends StatelessWidget {
       ),
       child: Stack(
         children: [
+          // Image
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: Hero(
+              tag: heroTag,
+              child: _buildImage(imageUrlToUse, 'title'),
+            ),
+          ),
+
           // Condition Badge
           Positioned(
             top: 8,
             left: 8,
-            child: _buildConditionBadge(context, product.properCondition),
+            child: _buildConditionBadge(
+              context,
+              widget.product.properCondition,
+            ),
           ),
         ],
       ),

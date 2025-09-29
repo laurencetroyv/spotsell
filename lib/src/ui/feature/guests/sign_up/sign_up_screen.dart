@@ -215,7 +215,7 @@ class _SignUpScreenState extends State<SignUpScreen>
         SliverAppBar(
           expandedHeight: 250,
           floating: false,
-          pinned: true,
+          pinned: false,
           elevation: 0,
           backgroundColor: Theme.of(context).colorScheme.primary,
           flexibleSpace: FlexibleSpaceBar(
@@ -234,13 +234,6 @@ class _SignUpScreenState extends State<SignUpScreen>
               ),
               child: _buildBrandingSection(context, false),
             ),
-          ),
-          leading: IconButton(
-            icon: Icon(
-              Platform.isIOS ? CupertinoIcons.back : Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () => Navigator.of(context).pop(),
           ),
         ),
 

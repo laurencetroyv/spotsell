@@ -16,10 +16,10 @@ class MessageViewModel extends BaseViewModel {
 
   List<Message> _messages = [];
   Timer? _refreshTimer;
+  num? _conversationId;
 
   List<Message> get messages => _messages;
-
-  num? _conversationId;
+  num? get conversationId => _conversationId;
 
   @override
   void initialize() {

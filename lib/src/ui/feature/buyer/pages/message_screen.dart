@@ -21,44 +21,64 @@ class MessageScreen extends StatefulWidget {
   State<MessageScreen> createState() => _MessageScreenState();
 }
 
-class _MessageScreenState extends State<MessageScreen> {
+class _MessageScreenState extends State<MessageScreen>
+    with WidgetsBindingObserver {
   late MessageViewModel _viewModel;
   late AuthService _authService;
   late Conversation _conversation;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _conversation = ModalRoute.of(context)!.settings.arguments! as Conversation;
-
-    final isSeller = _conversation.buyer != null;
+  void initState() {
+    super.initState();
 
     _viewModel = MessageViewModel();
     _authService = getService<AuthService>();
     _viewModel.initialize();
-    _viewModel.setConversationId(_conversation.id, isSeller);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _viewModel.stopAutoRefresh();
+    } else if (state == AppLifecycleState.resumed) {
+      _viewModel.resumeAutoRefresh();
+      _viewModel.refreshConversationSilently();
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_viewModel.conversationId == null) {
+      _conversation =
+          ModalRoute.of(context)!.settings.arguments! as Conversation;
+      final isSeller = _conversation.buyer != null;
+      _viewModel.setConversationId(_conversation.id, isSeller);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    return ListenableBuilder(
-      listenable: _viewModel,
-      builder: (context, _) {
-        return AdaptiveScaffold(
-          isLoading: _viewModel.isLoading,
-          appBar: _buildAppBar(context, responsive),
-          child: SafeArea(
-            child: Column(
-              children: [
-                Expanded(child: _buildMessageList(context, responsive)),
-                _buildMessageInput(context, responsive),
-              ],
+    return AdaptiveScaffold(
+      appBar: _buildAppBar(context, responsive),
+      child: SafeArea(
+        child: Column(
+          children: [
+            ListenableBuilder(
+              listenable: _viewModel,
+              builder: (context, _) {
+                return Expanded(child: _buildMessageList(context, responsive));
+              },
             ),
-          ),
-        );
-      },
+            _buildMessageInput(context, responsive),
+          ],
+        ),
+      ),
     );
   }
 
@@ -382,6 +402,7 @@ class _MessageScreenState extends State<MessageScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _viewModel.dispose();
     super.dispose();
   }

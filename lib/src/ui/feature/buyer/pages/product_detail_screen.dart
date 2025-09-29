@@ -28,6 +28,8 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   late Product product;
   late ProductDetailViewModel _viewModel;
+
+  bool isMessageClicked = false;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -102,9 +104,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildContent(BuildContext context, ResponsiveBreakpoints responsive) {
-    final showActionButtons =
-        _viewModel.user != null &&
-        _viewModel.user?.id == product.store?.seller?.id;
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
@@ -314,6 +313,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         children: [
           Expanded(
             child: AdaptiveButton(
+              isLoading: isMessageClicked,
               onPressed: _handleMessage,
               icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.messages)),
               child: const Text('Message'),
@@ -462,7 +462,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Future<void> _handleMessage() async {
+    setState(() => isMessageClicked = !isMessageClicked);
     await _viewModel.loadConversationOfStore();
+    setState(() => isMessageClicked = !isMessageClicked);
 
     await context.pushNamed(
       RouteNames.message,

@@ -168,7 +168,7 @@ class ProductDetailViewModel extends BaseViewModel {
           final conversations = result.value;
 
           if (conversations.isEmpty) {
-            createNewConversation();
+            await createNewConversation();
           } else {
             _conversations = conversations;
           }

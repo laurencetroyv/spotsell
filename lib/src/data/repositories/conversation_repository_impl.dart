@@ -79,7 +79,7 @@ class ConversationRepositoryImpl implements ConversationRepository {
       );
 
       if (response.statusCode == 201) {
-        final conversation = Conversation.fromJson(response.data);
+        final conversation = Conversation.fromJson(response.data['data']);
         return Result.ok(conversation);
       } else {
         return Result.error(Exception('Failed to create conversation'));

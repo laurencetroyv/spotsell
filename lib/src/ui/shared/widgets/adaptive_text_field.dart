@@ -19,6 +19,7 @@ class AdaptiveTextField extends StatefulWidget {
     this.suffixIcon,
     this.keyboardType,
     this.textInputAction,
+    this.autocorrect = false,
     this.obscureText = false,
     this.minLines = 1,
     this.maxLines = 1,
@@ -33,6 +34,7 @@ class AdaptiveTextField extends StatefulWidget {
   final String? label;
   final String? placeholder;
   final bool enabled;
+  final bool autocorrect;
   final TextEditingController controller;
   final IconData? prefixIcon;
   final IconData? suffixIcon;
@@ -126,6 +128,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
       enabled: widget.enabled,
       placeholder: widget.placeholder,
       keyboardType: widget.keyboardType,
+      autocorrect: widget.autocorrect,
       textInputAction: widget.textInputAction,
       obscureText: _isObscured,
       maxLines: widget.maxLines,
@@ -175,6 +178,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
       enabled: widget.enabled,
       placeholder: widget.placeholder,
       keyboardType: widget.keyboardType,
+      autocorrect: widget.autocorrect,
       textInputAction: widget.textInputAction,
       obscureText: _isObscured,
       minLines: widget.minLines,
@@ -214,6 +218,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
       controller: widget.controller,
       enabled: widget.enabled,
       keyboardType: widget.keyboardType,
+      autocorrect: widget.autocorrect,
       textInputAction: widget.textInputAction,
       obscureText: _isObscured,
       minLines: widget.minLines,

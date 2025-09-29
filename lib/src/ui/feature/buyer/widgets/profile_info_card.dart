@@ -69,7 +69,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
       ),
       child: Column(
         children: [
-          // Profile Picture with Status Indicator
           Stack(
             children: [
               Container(
@@ -125,7 +124,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
                     : _buildDefaultAvatar(context),
               ),
 
-              // Verification Badge
               Positioned(
                 bottom: 8,
                 right: 8,
@@ -158,10 +156,8 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
 
           SizedBox(height: responsive.largeSpacing),
 
-          // User Info Section
           Column(
             children: [
-              // Username with Role Badge
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -180,7 +176,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
                 ],
               ),
 
-              // Full Name
               if (_user?.firstName != null && _user?.lastName != null) ...[
                 SizedBox(height: responsive.smallSpacing),
                 Text(
@@ -200,7 +195,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
 
               SizedBox(height: responsive.mediumSpacing),
 
-              // Verification Status Card
               Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: responsive.mediumSpacing,
@@ -276,12 +270,10 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
 
           SizedBox(height: responsive.largeSpacing),
 
-          // Stats Row (if needed)
           _buildStatsRow(responsive),
 
           SizedBox(height: responsive.mediumSpacing),
 
-          // Action Buttons Row
           Row(
             children: [
               Expanded(
@@ -415,7 +407,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
     if (_authService.isSeller) {
       context.pushNamed(RouteNames.manageStores);
     } else {
-      // Show create store dialog to become a seller
       await _showCreateStoreDialog();
     }
   }
@@ -474,20 +465,16 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
       );
 
       if (updatedUser != null) {
-        // Update the local user state
         setState(() {
           _user = updatedUser;
         });
 
-        // Show success message
         _showProfileUpdateSuccess();
 
-        // Optional: Refresh auth service to ensure consistency
         try {
           await _authService.refreshUser(_authService.currentUser?.token);
         } catch (e) {
           debugPrint('Failed to refresh user after profile update: $e');
-          // Don't show error to user as the profile was updated successfully
         }
       }
     } catch (e) {
@@ -498,11 +485,9 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
     }
   }
 
-  // Add this method to show success message
   void _showProfileUpdateSuccess() {
     if (!kIsWeb) {
       if (Platform.isMacOS || Platform.isIOS) {
-        // iOS users expect more subtle feedback
         HapticFeedback.lightImpact();
         return;
       }
@@ -525,7 +510,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
       }
     }
 
-    // Material and fallback
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Profile updated successfully!'),
@@ -538,7 +522,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
   }
 
   void _handleVerification() {
-    // TODO: Navigate to verification screen
     debugPrint('Verification tapped');
   }
 }

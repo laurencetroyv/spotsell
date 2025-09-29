@@ -181,7 +181,11 @@ class AuthRepositoryImpl implements AuthRepository {
       final response = await _dio.get(_getCurrentUserUrlEndpoint);
 
       if (response.statusCode == 200) {
-        final user = AuthUser.fromJson(response.data, token: token);
+        final user = AuthUser.fromJson(
+          response.data['data'],
+          token: token,
+          fromMessage: true,
+        );
         return Result.ok(user);
       } else {
         return Result.error(

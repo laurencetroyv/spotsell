@@ -32,7 +32,7 @@ jobs:
           if [[ "$BRANCH_NAME" =~ ^feature/ ]]; then
             BUMP_TYPE="minor"
             echo "🚀 Feature branch detected - Minor version bump"
-          elif [[ "$BRANCH_NAME" =~ ^(bugfix/|fix/|hotfix/|refactor/enhancement) ]]; then
+          elif [[ "$BRANCH_NAME" =~ ^(bugfix/|fix/|hotfix/|refactor/|enhancement/) ]]; then
             BUMP_TYPE="patch"
             echo "🐛 Bug/Refactor branch detected - Patch version bump"
           else
@@ -207,7 +207,7 @@ jobs:
 
             ### 📋 Supported Branch Naming Convention
             - \`feature/*\` → Minor version bump (x.**Y**.0)
-            - \`bugfix/*\`, \`fix/*\`, \`hotfix/*\`, \`refactor/*\` → Patch version bump (x.y.**Z**)
+            - \`bugfix/*\`, \`fix/*\`, \`hotfix/*\`, \`refactor/*\`, \`enhancement/*\` → Patch version bump (x.y.**Z**)
 
             If you want automatic version bumping, please rename your branch to follow the convention above.
 

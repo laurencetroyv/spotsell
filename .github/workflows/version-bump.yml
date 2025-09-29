@@ -32,7 +32,7 @@ jobs:
           if [[ "$BRANCH_NAME" =~ ^feature/ ]]; then
             BUMP_TYPE="minor"
             echo "🚀 Feature branch detected - Minor version bump"
-          elif [[ "$BRANCH_NAME" =~ ^(bugfix/|fix/|hotfix/|refactor/) ]]; then
+          elif [[ "$BRANCH_NAME" =~ ^(bugfix/|fix/|hotfix/|refactor/enhancement) ]]; then
             BUMP_TYPE="patch"
             echo "🐛 Bug/Refactor branch detected - Patch version bump"
           else

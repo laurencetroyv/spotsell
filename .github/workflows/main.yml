@@ -274,13 +274,13 @@ jobs:
 
     steps:
       - name: 📥 Download Android artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: android-artifacts
           path: release-artifacts/android/
 
       - name: 📥 Download iOS artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ios-artifacts
           path: release-artifacts/ios/

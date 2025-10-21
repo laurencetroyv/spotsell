@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
@@ -89,52 +88,15 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoNavigationBar(
-          middle: Text('Manage Stores'),
-          leading: CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: () => Navigator.of(context).pop(),
-            child: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.back)),
-          ),
-        );
-      }
-
-      if (Platform.isWindows) {
-        return PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Container(
-            height: 60,
-            decoration: BoxDecoration(
-              color: fl.FluentTheme.of(context).scaffoldBackgroundColor,
-              border: Border(
-                bottom: BorderSide(
-                  color: fl.FluentTheme.of(
-                    context,
-                  ).resources.cardStrokeColorDefault,
-                ),
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  fl.IconButton(
-                    icon: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.back)),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Manage Stores',
-                    style: fl.FluentTheme.of(context).typography.title,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
+    if (Platform.isIOS) {
+      return CupertinoNavigationBar(
+        middle: Text('Manage Stores'),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => Navigator.of(context).pop(),
+          child: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.back)),
+        ),
+      );
     }
 
     // Material
@@ -599,39 +561,21 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
   }
 
   void _showSuccessMessage(String message) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('Success'),
-            content: Text(message),
-            actions: [
-              CupertinoDialogAction(
-                child: const Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        );
-        return;
-      }
-
-      if (Platform.isWindows) {
-        fl.displayInfoBar(
-          context,
-          builder: (context, close) => fl.InfoBar(
-            title: const Text('Success'),
-            content: Text(message),
-            severity: fl.InfoBarSeverity.success,
-            action: fl.IconButton(
-              icon: const Icon(fl.FluentIcons.clear),
-              onPressed: close,
+    if (Platform.isIOS) {
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('Success'),
+          content: Text(message),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-          ),
-        );
-        return;
-      }
+          ],
+        ),
+      );
+      return;
     }
 
     // Material
@@ -646,39 +590,21 @@ class _ManageStoresScreenState extends State<ManageStoresScreen> {
   }
 
   void _showErrorMessage(String message) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('Error'),
-            content: Text(message),
-            actions: [
-              CupertinoDialogAction(
-                child: const Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        );
-        return;
-      }
-
-      if (Platform.isWindows) {
-        fl.displayInfoBar(
-          context,
-          builder: (context, close) => fl.InfoBar(
-            title: const Text('Error'),
-            content: Text(message),
-            severity: fl.InfoBarSeverity.error,
-            action: fl.IconButton(
-              icon: const Icon(fl.FluentIcons.clear),
-              onPressed: close,
+    if (Platform.isIOS) {
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-          ),
-        );
-        return;
-      }
+          ],
+        ),
+      );
+      return;
     }
 
     // Material

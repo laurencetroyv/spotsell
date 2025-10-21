@@ -1,10 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/ui/feature/buyer/widgets/edit_profile_dialog.dart';
@@ -15,22 +12,12 @@ class ProfileDialogUtils {
     BuildContext context,
     AuthUser currentUser,
   ) async {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return await showCupertinoDialog<AuthUser>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => EditProfileDialog(user: currentUser),
-        );
-      }
-
-      if (Platform.isWindows) {
-        return await fl.showDialog<AuthUser>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => EditProfileDialog(user: currentUser),
-        );
-      }
+    if (Platform.isMacOS || Platform.isIOS) {
+      return await showCupertinoDialog<AuthUser>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => EditProfileDialog(user: currentUser),
+      );
     }
 
     // Material
@@ -49,28 +36,15 @@ class ProfileDialogUtils {
     required VoidCallback onRemove,
     bool hasExistingPicture = false,
   }) async {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        await _showCupertinoProfilePictureOptions(
-          context,
-          onCamera: onCamera,
-          onGallery: onGallery,
-          onRemove: onRemove,
-          hasExistingPicture: hasExistingPicture,
-        );
-        return;
-      }
-
-      if (Platform.isWindows) {
-        await _showFluentProfilePictureOptions(
-          context,
-          onCamera: onCamera,
-          onGallery: onGallery,
-          onRemove: onRemove,
-          hasExistingPicture: hasExistingPicture,
-        );
-        return;
-      }
+    if (Platform.isMacOS || Platform.isIOS) {
+      await _showCupertinoProfilePictureOptions(
+        context,
+        onCamera: onCamera,
+        onGallery: onGallery,
+        onRemove: onRemove,
+        hasExistingPicture: hasExistingPicture,
+      );
+      return;
     }
 
     // Material
@@ -148,76 +122,6 @@ class ProfileDialogUtils {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-      ),
-    );
-  }
-
-  static Future<void> _showFluentProfilePictureOptions(
-    BuildContext context, {
-    required VoidCallback onCamera,
-    required VoidCallback onGallery,
-    required VoidCallback onRemove,
-    required bool hasExistingPicture,
-  }) async {
-    await fl.showDialog<void>(
-      context: context,
-      builder: (context) => fl.ContentDialog(
-        title: const Text('Profile Picture'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            fl.Button(
-              onPressed: () {
-                Navigator.of(context).pop();
-                onGallery();
-              },
-              child: const Row(
-                children: [
-                  Icon(fl.FluentIcons.photo2),
-                  SizedBox(width: 8),
-                  Text('Choose from Library'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            fl.Button(
-              onPressed: () {
-                Navigator.of(context).pop();
-                onCamera();
-              },
-              child: const Row(
-                children: [
-                  Icon(fl.FluentIcons.camera),
-                  SizedBox(width: 8),
-                  Text('Take Photo'),
-                ],
-              ),
-            ),
-            if (hasExistingPicture) ...[
-              const SizedBox(height: 8),
-              fl.Button(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  onRemove();
-                },
-                child: const Row(
-                  children: [
-                    Icon(fl.FluentIcons.delete, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Remove Photo', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          fl.Button(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
       ),
     );
   }

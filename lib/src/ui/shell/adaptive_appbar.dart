@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
@@ -15,14 +14,8 @@ class AdaptiveAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return _buildCupertinoAppBar(context, responsive);
-      }
-
-      if (Platform.isWindows) {
-        return _buildFluentAppBar(context, responsive);
-      }
+    if (Platform.isMacOS || Platform.isIOS) {
+      return _buildCupertinoAppBar(context, responsive);
     }
 
     return _buildMaterialAppBar(context, responsive);
@@ -42,13 +35,6 @@ class AdaptiveAppBar extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildFluentAppBar(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    return SizedBox();
   }
 
   Widget _buildMaterialAppBar(

@@ -1,10 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
@@ -55,7 +52,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   PreferredSizeWidget? _buildAppBar(BuildContext context) {
-    final widget = AppBar(
+    if (Platform.isIOS) {
+      return CupertinoNavigationBar(
+        middle: const Text('Add Product'),
+        leading: CupertinoNavigationBarBackButton(
+          onPressed: () => Navigator.pop(context),
+        ),
+      );
+      // return null;
+    }
+
+    return AppBar(
       title: const Text('Add Product'),
       backgroundColor: Theme.of(context).colorScheme.surface,
       foregroundColor: Theme.of(context).colorScheme.onSurface,
@@ -65,20 +72,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
         onPressed: () => Navigator.of(context).pop(),
       ),
     );
-
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoNavigationBar(
-          middle: const Text('Add Product'),
-          leading: CupertinoNavigationBarBackButton(
-            onPressed: () => Navigator.pop(context),
-          ),
-        );
-        // return null;
-      }
-    }
-
-    return widget;
   }
 
   Widget _buildScrollableContent(
@@ -303,26 +296,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
     required ValueChanged<T?> onChanged,
     required String Function(T) displayText,
   }) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return _buildCupertinoSelector<T>(
-          context,
-          values: values,
-          selected: selected,
-          onChanged: onChanged,
-          displayText: displayText,
-        );
-      }
-
-      if (Platform.isWindows) {
-        return _buildFluentSelector<T>(
-          context,
-          values: values,
-          selected: selected,
-          onChanged: onChanged,
-          displayText: displayText,
-        );
-      }
+    if (Platform.isIOS) {
+      return _buildCupertinoSelector<T>(
+        context,
+        values: values,
+        selected: selected,
+        onChanged: onChanged,
+        displayText: displayText,
+      );
     }
 
     // Material dropdown for Android/Web/Linux
@@ -375,31 +356,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
-  Widget _buildFluentSelector<T extends Object>(
-    BuildContext context, {
-    required List<T> values,
-    required T selected,
-    required ValueChanged<T>? onChanged,
-    required String Function(T) displayText,
-  }) {
-    return fl.ComboBox<T>(
-      value: selected,
-      onChanged: onChanged != null
-          ? (T? value) {
-              if (value != null) {
-                onChanged(value);
-              }
-            }
-          : null,
-      items: values.map((value) {
-        return fl.ComboBoxItem<T>(
-          value: value,
-          child: Text(displayText(value)),
-        );
-      }).toList(),
-    );
-  }
-
   Widget _buildMaterialDropdown<T extends Object>(
     BuildContext context, {
     required List<T> values,
@@ -445,25 +401,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     BuildContext context,
     ResponsiveBreakpoints responsive,
   ) {
-    if (!kIsWeb && Platform.isWindows) {
-      return fl.SplitButton(
-        flyout: fl.MenuFlyout(
-          items: [
-            fl.MenuFlyoutItem(
-              text: const Text('From Gallery'),
-              onPressed: _viewModel.pickImage,
-            ),
-            fl.MenuFlyoutItem(
-              text: const Text('Take Photo'),
-              onPressed: _viewModel.pickImageFromCamera,
-            ),
-          ],
-        ),
-        child: const Icon(fl.FluentIcons.add_friend),
-      );
-    }
-
-    if (!kIsWeb && (Platform.isMacOS || Platform.isIOS)) {
+    if (Platform.isIOS) {
       return CupertinoButton(
         padding: EdgeInsets.zero,
         onPressed: () => _showImagePickerOptions(context),
@@ -672,32 +610,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   Widget _buildAdaptiveImage(ImageData imageData, double size) {
-    if (kIsWeb) {
-      // For web, use Image.memory with bytes
-      if (imageData.bytes != null) {
-        return Image.memory(
-          imageData.bytes!,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return _buildImageErrorPlaceholder(size);
-          },
-        );
-      }
-    } else {
-      // For native platforms, use Image.file
-      if (imageData.file != null) {
-        return Image.file(
-          imageData.file!,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return _buildImageErrorPlaceholder(size);
-          },
-        );
-      }
+    if (imageData.file != null) {
+      return Image.file(
+        imageData.file!,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildImageErrorPlaceholder(size);
+        },
+      );
     }
 
     // Fallback for invalid image data

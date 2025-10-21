@@ -21,9 +21,7 @@ import 'package:spotsell/src/data/services/logger_service.dart';
 import 'package:spotsell/src/data/services/navigation_service.dart';
 import 'package:spotsell/src/data/services/secure_storage_service.dart';
 import 'package:spotsell/src/ui/services/cupertino_navigation_service.dart';
-import 'package:spotsell/src/ui/services/fluent_navigation_service.dart';
 import 'package:spotsell/src/ui/services/material_navigation_service.dart';
-import 'package:spotsell/src/ui/services/yaru_navigation_service.dart';
 
 /// Service locator for dependency injection
 /// Manages the creation and lifecycle of all services in the application
@@ -56,7 +54,7 @@ class ServiceLocator {
       await _registerCoreServices();
 
       // Initialize logger after LoggerService is registered
-      if (!kIsWeb && isRegistered<LoggerService>()) {
+      if (isRegistered<LoggerService>()) {
         _logger = Logger(output: get<LoggerService>());
         _logger!.i('Logger initialized');
       }
@@ -93,13 +91,10 @@ class ServiceLocator {
     // Register SecureStorageService as singleton
     registerSingleton<SecureStorageService>(SecureStorageService());
 
-    // Register LoggerService as singleton for desktop platforms only
-    if (!kIsWeb) {
-      final loggerService = LoggerService();
-      await loggerService.initialize();
-      registerSingleton<LoggerService>(loggerService);
-      debugPrint('LoggerService registered for desktop platform');
-    }
+    final loggerService = LoggerService();
+    await loggerService.initialize();
+    registerSingleton<LoggerService>(loggerService);
+    debugPrint('LoggerService registered for desktop platform');
 
     debugPrint('Core services registered');
   }
@@ -145,16 +140,14 @@ class ServiceLocator {
     final navigationService = _createNavigationService(navigatorKey);
     registerSingleton<NavigationService>(navigationService);
 
-    if (!kIsWeb) {
-      if (_logger != null) {
-        _logger!.i(
-          'Platform services registered for ${Platform.operatingSystem}',
-        );
-      } else {
-        debugPrint(
-          'Platform services registered for ${Platform.operatingSystem}',
-        );
-      }
+    if (_logger != null) {
+      _logger!.i(
+        'Platform services registered for ${Platform.operatingSystem}',
+      );
+    } else {
+      debugPrint(
+        'Platform services registered for ${Platform.operatingSystem}',
+      );
     }
   }
 
@@ -162,18 +155,8 @@ class ServiceLocator {
   NavigationService _createNavigationService(
     GlobalKey<NavigatorState> navigatorKey,
   ) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoNavigationService(navigatorKey);
-      }
-
-      if (Platform.isWindows) {
-        return FluentNavigationService(navigatorKey);
-      }
-
-      if (Platform.isLinux || Platform.isFuchsia) {
-        return YaruNavigationService(navigatorKey);
-      }
+    if (Platform.isIOS) {
+      return CupertinoNavigationService(navigatorKey);
     }
 
     // Default to Material (Android and fallback)
@@ -396,7 +379,7 @@ class ServiceLocator {
       'singletons': _singletons.keys.map((k) => k.toString()).toList(),
       'services': _services.keys.map((k) => k.toString()).toList(),
       'factories': _factories.keys.map((k) => k.toString()).toList(),
-      'platform': kIsWeb ? 'web' : Platform.operatingSystem,
+      'platform': Platform.operatingSystem,
     };
   }
 }

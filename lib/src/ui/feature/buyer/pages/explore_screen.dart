@@ -4,8 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:fluent_ui/fluent_ui.dart' as fl;
-
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
@@ -84,83 +82,31 @@ class _ExploreScreenState extends State<ExploreScreen>
   }
 
   PreferredSizeWidget? _buildAppBar(BuildContext context) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoNavigationBar(
-          automaticallyImplyLeading: false,
-          middle: AdaptiveTextField(
-            controller: _viewModel.searchController,
-            placeholder: 'Search product',
-            prefixIcon: CupertinoIcons.search,
-            onChanged: _handleSearch,
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: _handleFilter,
-                child: const Icon(CupertinoIcons.slider_horizontal_3),
-              ),
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: _handleNotifications,
-                child: const Icon(CupertinoIcons.bell),
-              ),
-            ],
-          ),
-        );
-      }
-
-      if (Platform.isWindows) {
-        return PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Container(
-            height: 60,
-            decoration: BoxDecoration(
-              color: fl.FluentTheme.of(context).scaffoldBackgroundColor,
-              border: Border(
-                bottom: BorderSide(
-                  color: fl.FluentTheme.of(
-                    context,
-                  ).resources.cardStrokeColorDefault,
-                ),
-              ),
+    if (Platform.isIOS) {
+      return CupertinoNavigationBar(
+        automaticallyImplyLeading: false,
+        middle: AdaptiveTextField(
+          controller: _viewModel.searchController,
+          placeholder: 'Search product',
+          prefixIcon: CupertinoIcons.search,
+          onChanged: _handleSearch,
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: _handleFilter,
+              child: const Icon(CupertinoIcons.slider_horizontal_3),
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  fl.IconButton(
-                    icon: const Icon(fl.FluentIcons.global_nav_button),
-                    onPressed: () {
-                      // Handle menu tap
-                    },
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: AdaptiveTextField(
-                      controller: _viewModel.searchController,
-                      placeholder: 'Search product',
-                      prefixIcon: Icons.search,
-                      onChanged: _handleSearch,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  fl.IconButton(
-                    icon: const Icon(fl.FluentIcons.filter),
-                    onPressed: _handleFilter,
-                  ),
-                  fl.IconButton(
-                    icon: const Icon(fl.FluentIcons.ringer),
-                    onPressed: _handleNotifications,
-                  ),
-                ],
-              ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: _handleNotifications,
+              child: const Icon(CupertinoIcons.bell),
             ),
-          ),
-        );
-      }
+          ],
+        ),
+      );
     }
 
     // Material (Android, Linux, Web)

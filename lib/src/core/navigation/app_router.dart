@@ -1,10 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/navigation/route_names.dart';
@@ -145,18 +142,8 @@ class AppRouter {
     Widget widget,
     RouteSettings settings,
   ) {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return _createCupertinoRoute(widget, settings);
-      }
-
-      if (Platform.isWindows) {
-        return _createFluentRoute(widget, settings);
-      }
-
-      if (Platform.isLinux || Platform.isFuchsia) {
-        return _createYaruRoute(widget, settings);
-      }
+    if (Platform.isIOS) {
+      return _createCupertinoRoute(widget, settings);
     }
 
     return _createMaterialRoute(widget, settings);
@@ -181,40 +168,6 @@ class AppRouter {
       builder: (_) => widget,
       settings: settings,
       maintainState: true,
-    );
-  }
-
-  static Route<dynamic> _createFluentRoute(
-    Widget widget,
-    RouteSettings settings,
-  ) {
-    return fl.FluentPageRoute(
-      builder: (_) => widget,
-      settings: settings,
-      maintainState: true,
-    );
-  }
-
-  static Route<dynamic> _createYaruRoute(
-    Widget widget,
-    RouteSettings settings,
-  ) {
-    return PageRouteBuilder(
-      settings: settings,
-      pageBuilder: (context, animation, secondaryAnimation) => widget,
-      transitionDuration: const Duration(milliseconds: 200),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(1.0, 0.0);
-        const end = Offset.zero;
-        const curve = Curves.easeInOut;
-
-        var tween = Tween(
-          begin: begin,
-          end: end,
-        ).chain(CurveTween(curve: curve));
-
-        return SlideTransition(position: animation.drive(tween), child: child);
-      },
     );
   }
 

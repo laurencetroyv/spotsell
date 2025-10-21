@@ -2,8 +2,8 @@ name: 🛠 Multi-Platform CI / Build & Release
 
 on:
   pull_request:
-    types: [closed]
-    branches: [main]
+    types: [ closed ]
+    branches: [ main ]
 
 permissions:
   contents: write
@@ -148,13 +148,63 @@ jobs:
       - name: 🗃️ Generate environment configuration
         run: dart run build_runner build
 
-      - name: 🗃️ Build APKs
-        run: flutter build apk --release
+      - name: 🔐 Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE }}" | base64 -d > android/app/upload-keystore.jks
+
+      - name: 🔑 Create key.properties
+        run: |
+          cat > android/key.properties << EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=upload-keystore.jks
+          EOF
+
+      - name: 📁 Create debug info directories
+        run: |
+          mkdir -p debug-info/${{ needs.check_merged.outputs.tag_name }}/appbundle
+          mkdir -p debug-info/${{ needs.check_merged.outputs.tag_name }}/apk-universal
+          mkdir -p debug-info/${{ needs.check_merged.outputs.tag_name }}/apk-split
+
+      - name: 🗃️ Build App Bundle (Signed & Obfuscated)
+        run: |
+          flutter build appbundle \
+            --release \
+            --obfuscate \
+            --split-debug-info=debug-info/${{ needs.check_merged.outputs.tag_name }}/appbundle
+
+      - name: 🗃️ Build APK Universal (Signed & Obfuscated)
+        run: |
+          flutter build apk \
+            --release \
+            --obfuscate \
+            --split-debug-info=debug-info/${{ needs.check_merged.outputs.tag_name }}/apk-universal
+
+      - name: 🗃️ Build APK Split per ABI (Signed & Obfuscated)
+        run: |
+          flutter build apk \
+            --release \
+            --split-per-abi \
+            --obfuscate \
+            --split-debug-info=debug-info/${{ needs.check_merged.outputs.tag_name }}/apk-split
 
       - name: 📦 Prepare Android artifacts
         run: |
-          mkdir -p artifacts/android
-          cp build/app/outputs/flutter-apk/*.apk artifacts/android/
+          mkdir -p artifacts/android/appbundle
+          mkdir -p artifacts/android/apk
+          mkdir -p artifacts/android/debug-info
+          
+          # Copy App Bundle
+          cp build/app/outputs/bundle/release/*.aab artifacts/android/appbundle/
+          
+          # Copy APKs (universal and split)
+          cp build/app/outputs/flutter-apk/*.apk artifacts/android/apk/
+          
+          # Compress debug info for each build type
+          cd debug-info/${{ needs.check_merged.outputs.tag_name }}
+          tar -czf ../../artifacts/android/debug-info/debug-symbols-${{ needs.check_merged.outputs.tag_name }}.tar.gz *
+          cd ../..
 
       - name: ⬆️ Upload Android artifacts
         uses: actions/upload-artifact@v4
@@ -162,54 +212,11 @@ jobs:
           name: android-artifacts
           path: artifacts/android/
 
-  build_web:
-    needs: check_merged
-    if: needs.check_merged.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 📂 Checkout code
-        uses: actions/checkout@v5
-
-      - name: 🚀 Cache pub deps
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yml')  }}
-          restore-keys: ${{ runner.os }}-pub-
-
-      - name: 🦋 Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: 📥 Get dependencies
-        run: flutter pub get
-
-      - name: 🔧 Create environment file
+      - name: 🧹 Cleanup keystore
+        if: always()
         run: |
-          cat > .env << EOF
-          API=${{ secrets.API_KEY }}
-          SENTRY_DNS=${{ secrets.SENTRY_DNS }}
-          ENVIRONMENT=${{ secrets.ENVIRONMENT }}
-          EOF
-
-      - name: 🗃️ Generate environment configuration
-        run: dart run build_runner build
-
-      - name: 🗃️ Build Web
-        run: flutter build web --release
-
-      - name: 📦 Prepare web artifacts
-        run: |
-          mkdir -p artifacts/web
-          cd build/web && tar -czf ../../artifacts/web/spotsell-web.tar.gz *
-
-      - name: ⬆️ Upload Web artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-artifacts
-          path: artifacts/web/
+          rm -f android/app/upload-keystore.jks
+          rm -f android/key.properties
 
   build_ios:
     needs: check_merged
@@ -247,7 +254,7 @@ jobs:
         run: dart run build_runner build
 
       - name: 🗃️ Build iOS
-        run: flutter build ios --release --no-codesign
+        run: flutter build ios --release --no-codesign --obfuscate --split-debug-info=debug-info/${{ needs.check_merged.outputs.tag_name }}/
 
       - name: 📦 Prepare iOS artifacts
         run: |
@@ -260,163 +267,23 @@ jobs:
           name: ios-artifacts
           path: artifacts/ios/
 
-  build_macos:
-    needs: check_merged
-    if: needs.check_merged.outputs.should_run == 'true'
-    runs-on: macos-latest
-
-    steps:
-      - name: 📂 Checkout code
-        uses: actions/checkout@v5
-
-      - name: 🚀 Cache pub deps
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yml')  }}
-          restore-keys: ${{ runner.os }}-pub-
-
-      - name: 🦋 Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: 📥 Get dependencies
-        run: flutter pub get
-
-      - name: 🔧 Create environment file
-        run: |
-          cat > .env << EOF
-          API=${{ secrets.API_KEY }}
-          SENTRY_DNS=${{ secrets.SENTRY_DNS }}
-          ENVIRONMENT=${{ secrets.ENVIRONMENT }}
-          EOF
-
-      - name: 🗃️ Generate environment configuration
-        run: dart run build_runner build
-
-      - name: 🗃️ Build macOS
-        run: flutter build macos --release
-
-      - name: 📦 Prepare macOS artifacts
-        run: |
-          mkdir -p artifacts/macos
-          cd build/macos/Build/Products/Release && tar -czf ../../../../../artifacts/macos/spotsell-macos.tar.gz spotsell.app
-
-      - name: ⬆️ Upload macOS artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-artifacts
-          path: artifacts/macos/
-
-  build_windows:
-    needs: check_merged
-    if: needs.check_merged.outputs.should_run == 'true'
-    runs-on: windows-latest
-
-    steps:
-      - name: 📂 Checkout code
-        uses: actions/checkout@v5
-
-      - name: 🚀 Cache pub deps
-        uses: actions/cache@v4
-        with:
-          path: ~\AppData\Local\Pub\Cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yml')  }}
-          restore-keys: ${{ runner.os }}-pub-
-
-      - name: 🦋 Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: 📥 Get dependencies
-        run: flutter pub get
-
-      - name: 🔧 Create environment file
-        run: |
-          @"
-          API=${{ secrets.API_KEY }}
-          SENTRY_DNS=${{ secrets.SENTRY_DNS }}
-          ENVIRONMENT=${{ secrets.ENVIRONMENT }}
-          "@ | Out-File -FilePath .env -Encoding utf8
-        shell: pwsh
-
-      - name: 🗃️ Generate environment configuration
-        run: dart run build_runner build
-
-      - name: 🗃️ Build Windows
-        run: flutter build windows --release
-
-      - name: 📦 Prepare Windows artifacts
-        run: |
-          mkdir artifacts\windows
-          powershell Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "artifacts\windows\spotsell-windows.zip"
-
-      - name: ⬆️ Upload Windows artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-artifacts
-          path: artifacts/windows/
-
-  web_publish:
-    runs-on: ubuntu-latest
-    needs: [check_merged, build_web]
-
-    steps:
-      - name: 📥 Download Web artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: web-artifacts
-          path: web-artifacts/
-
-      - name: 📦 Extract Web artifacts
-        run: |
-          cd web-artifacts
-          tar -xzf spotsell-web.tar.gz
-          rm spotsell-web.tar.gz
-
-      - name: 🚀 Deploy Web to FTP
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0
-        with:
-          server: ${{ secrets.DEPLOY_SERVER }}
-          username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
-          password: ${{ secrets.DEPLOY_SERVER_PASSWORD }}
-          local-dir: web-artifacts/
-          server-dir: /
-          protocol: ftp
-          port: 21
-          dangerous-clean-slate: true
-
   publish:
     runs-on: ubuntu-latest
     needs:
-      [ check_merged, build_android, build_ios, build_macos, build_windows ]
+      [ check_merged, build_android, build_ios ]
 
     steps:
       - name: 📥 Download Android artifacts
         uses: actions/download-artifact@v4
         with:
           name: android-artifacts
-          path: release-artifacts/
+          path: release-artifacts/android/
 
       - name: 📥 Download iOS artifacts
         uses: actions/download-artifact@v4
         with:
           name: ios-artifacts
-          path: release-artifacts/
-
-      - name: 📥 Download macOS artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-artifacts
-          path: release-artifacts/
-
-      - name: 📥 Download Windows artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-artifacts
-          path: release-artifacts/
+          path: release-artifacts/ios/
 
       - name: 🏷️ Create Release
         uses: ncipollo/release-action@v1.20.0
@@ -426,21 +293,50 @@ jobs:
           artifacts: "release-artifacts/**/*"
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
-            ## 🚀 ${{ needs.check_merged.outputs.pr_title }}
-
-            ${{ needs.check_merged.outputs.pr_description }}
-
-            ### 📝 Changes in this release:
+            ## 📝 Changes in this release:
             ${{ needs.check_merged.outputs.commit_messages }}
-
-            ### 📱 Available Downloads:
-            - **Android APKs**: Ready for sideloading
-            - **iOS App**: Unsigned build (requires signing)
-            - **macOS App**: Desktop application for macOS
-            - **Windows**: Desktop application for Windows
-
-            ### 🔧 Installation Instructions:
-            - **Android**: Download and install the APK file
-            - **iOS**: Requires code signing before installation
-            - **macOS**: Extract tar.gz and run the .app bundle
-            - **Windows**: Extract ZIP and run the executable
+            
+            ---
+            
+            ## 📱 Available Downloads:
+            
+            ### 🤖 Android
+            - **App Bundle (AAB)** - `android/appbundle/app-release.aab`
+              - For Google Play Store submission
+              - Obfuscated & optimized
+            - **Universal APK** - `android/apk/app-release.apk`
+              - Single APK for all devices (~50-80MB)
+              - Works on all Android devices
+            - **Split APKs** (Recommended for sideloading)
+              - `android/apk/app-armeabi-v7a-release.apk` - 32-bit ARM devices
+              - `android/apk/app-arm64-v8a-release.apk` - 64-bit ARM devices (most modern phones)
+              - `android/apk/app-x86_64-release.apk` - Intel-based devices
+              - Smaller file sizes (~20-30MB each)
+            - **Debug Symbols** - `android/debug-info/debug-symbols-${{ needs.check_merged.outputs.tag_name }}.tar.gz`
+              - For crash reporting and stack trace deobfuscation
+            
+            ### 🍎 iOS
+            - **iOS App** - `ios/spotsell-ios.tar.gz`
+              - Unsigned build (requires code signing before installation)
+            
+            ---
+            
+            ## 🔧 Installation Instructions:
+            
+            **Android:**
+            - **Play Store**: Upload the AAB file
+            - **Direct Install**: Download the appropriate APK for your device
+              - Most users: `app-arm64-v8a-release.apk`
+              - Older devices: `app-armeabi-v7a-release.apk`
+              - Universal (all devices): `app-release.apk`
+            
+            **iOS:**
+            - Requires code signing before installation
+            - Extract the tar.gz file
+            
+            ---
+            
+            ### 🔐 Security Notes:
+            - All Android builds are signed with the official release keystore
+            - Code obfuscation is enabled for enhanced security
+            - Debug symbols are separate and not included in distributed apps

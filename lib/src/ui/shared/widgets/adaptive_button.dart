@@ -1,10 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/theme/theme_utils.dart';
@@ -65,29 +62,13 @@ class AdaptiveButton extends StatelessWidget {
 
     Widget button;
 
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        button = _buildCupertinoButton(
-          context,
-          responsive,
-          effectivelyEnabled,
-          effectiveChild,
-        );
-      } else if (Platform.isWindows) {
-        button = _buildFluentButton(
-          context,
-          responsive,
-          effectivelyEnabled,
-          effectiveChild,
-        );
-      } else {
-        button = _buildMaterialButton(
-          context,
-          responsive,
-          effectivelyEnabled,
-          effectiveChild,
-        );
-      }
+    if (Platform.isIOS) {
+      button = _buildCupertinoButton(
+        context,
+        responsive,
+        effectivelyEnabled,
+        effectiveChild,
+      );
     } else {
       button = _buildMaterialButton(
         context,
@@ -95,13 +76,6 @@ class AdaptiveButton extends StatelessWidget {
         effectivelyEnabled,
         effectiveChild,
       );
-    }
-
-    // Wrap with tooltip if provided
-    if (!kIsWeb) {
-      if (tooltip != null && Platform.isWindows) {
-        button = Tooltip(message: tooltip!, child: button);
-      }
     }
 
     // Add semantic label if provided
@@ -121,29 +95,16 @@ class AdaptiveButton extends StatelessWidget {
   Widget _buildLoadingIndicator(BuildContext context) {
     final size = _getLoadingIndicatorSize();
 
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return SizedBox(
-          width: size,
-          height: size,
-          child: CupertinoActivityIndicator(
-            color:
-                foregroundColor ??
-                CupertinoTheme.of(context).primaryContrastingColor,
-          ),
-        );
-      }
-
-      if (Platform.isWindows) {
-        return SizedBox(
-          width: size,
-          height: size,
-          child: fl.ProgressRing(
-            strokeWidth: 2,
-            value: null, // Indeterminate
-          ),
-        );
-      }
+    if (Platform.isMacOS || Platform.isIOS) {
+      return SizedBox(
+        width: size,
+        height: size,
+        child: CupertinoActivityIndicator(
+          color:
+              foregroundColor ??
+              CupertinoTheme.of(context).primaryContrastingColor,
+        ),
+      );
     }
 
     // Material and Yaru
@@ -217,34 +178,6 @@ class AdaptiveButton extends StatelessWidget {
           borderRadius: buttonBorderRadius,
           color: backgroundColor ?? CupertinoColors.destructiveRed,
           disabledColor: disabledColor ?? CupertinoColors.quaternarySystemFill,
-          child: effectiveChild,
-        );
-    }
-  }
-
-  /// Build Fluent button for Windows
-  Widget _buildFluentButton(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-    bool enabled,
-    Widget effectiveChild,
-  ) {
-    switch (type) {
-      case AdaptiveButtonType.secondary:
-        return fl.Button(
-          onPressed: enabled ? onPressed : null,
-          child: effectiveChild,
-        );
-
-      case AdaptiveButtonType.text:
-        return fl.HyperlinkButton(
-          onPressed: enabled ? onPressed : null,
-          child: effectiveChild,
-        );
-
-      default:
-        return fl.FilledButton(
-          onPressed: enabled ? onPressed : null,
           child: effectiveChild,
         );
     }

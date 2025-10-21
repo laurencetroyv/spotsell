@@ -1,10 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 
@@ -48,14 +45,8 @@ class AdaptiveScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return _buildCupertinoScaffold(context, responsive);
-      }
-
-      if (Platform.isWindows) {
-        return _buildFluentScaffold(context, responsive);
-      }
+    if (Platform.isMacOS || Platform.isIOS) {
+      return _buildCupertinoScaffold(context, responsive);
     }
 
     return _buildMaterialScaffold(context, responsive);
@@ -156,110 +147,6 @@ class AdaptiveScaffold extends StatelessWidget {
               ],
             )
           : child,
-    );
-  }
-
-  Widget _buildFluentScaffold(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    if (isLoading != null && isLoading!) {
-      return fl.ScaffoldPage(
-        padding: EdgeInsets.zero,
-        content: Center(child: fl.ProgressRing()),
-      );
-    }
-
-    // For Fluent UI, use ScaffoldPage with NavigationView if navigation is needed
-    if (navigationRail != null) {
-      return fl.NavigationView(
-        appBar: responsive.isMobile
-            ? fl.NavigationAppBar(automaticallyImplyLeading: false)
-            : null,
-        pane: _buildFluentNavigationPane(context, responsive),
-      );
-    }
-
-    return fl.ScaffoldPage(
-      content: Stack(
-        children: [
-          child,
-          if (floatingActionButton != null)
-            Positioned(
-              right: responsive.horizontalPadding,
-              bottom:
-                  responsive.verticalPadding +
-                  (bottomNavigationBar != null ? 80 : 0),
-              child: floatingActionButton!,
-            ),
-          if (bottomNavigationBar != null)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: bottomNavigationBar!,
-            ),
-        ],
-      ),
-      header: appBar != null
-          ? Container(
-              height: responsive.appBarHeight,
-              padding: EdgeInsets.symmetric(
-                horizontal: responsive.horizontalPadding,
-              ),
-              child: appBar,
-            )
-          : null,
-      padding: EdgeInsets.zero,
-    );
-  }
-
-  fl.NavigationPane _buildFluentNavigationPane(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    // Convert NavigationRail to Fluent NavigationPane
-    final rail = navigationRail!;
-    fl.PaneDisplayMode displayMode = fl.PaneDisplayMode.open;
-
-    if (responsive.isDesktop) {
-      displayMode = fl.PaneDisplayMode.open;
-    } else if (responsive.isTablet) {
-      displayMode = fl.PaneDisplayMode.compact;
-    } else {
-      displayMode = fl.PaneDisplayMode.minimal;
-    }
-
-    List<fl.NavigationPaneItem> items = rail.destinations
-        .asMap()
-        .entries
-        .map<fl.NavigationPaneItem>((entry) {
-          final index = entry.key;
-          final destination = entry.value;
-
-          return fl.PaneItem(
-            key: ValueKey(index),
-            icon: destination.icon,
-            title: destination.label,
-            body: children![index],
-          );
-        })
-        .toList();
-
-    return fl.NavigationPane(
-      displayMode: displayMode,
-      selected: rail.selectedIndex,
-      onChanged: rail.onDestinationSelected,
-      items: items,
-      footerItems: rail.trailing != null
-          ? <fl.NavigationPaneItem>[
-              fl.PaneItemAction(
-                icon: const Icon(fl.FluentIcons.sign_out),
-                onTap: signOut!,
-                title: Text('Sign Out'),
-              ),
-            ]
-          : <fl.NavigationPaneItem>[],
     );
   }
 

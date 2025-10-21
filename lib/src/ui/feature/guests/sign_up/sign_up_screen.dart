@@ -5,10 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
 import 'package:spotsell/src/core/utils/constants.dart';
@@ -419,39 +417,21 @@ class _SignUpScreenState extends State<SignUpScreen>
 
           SizedBox(height: responsive.mediumSpacing),
 
-          if (!kIsWeb && Platform.isWindows)
-            _buildAnimatedSlide(
-              delay: 600,
-              child: fl.InfoLabel(
-                label: 'Date of Birth',
-                child: SizedBox(
-                  width: double.infinity,
-                  child: fl.CalendarDatePicker(
-                    dateFormatter: DateFormat.yMMMMEEEEd(),
-                    maxDate: DateTime.now(),
-                    onSelectionChanged: (value) {
-                      _validateFluintCalendarDatePicker(value.selectedDates);
-                    },
-                  ),
-                ),
-              ),
-            )
-          else
-            // Date of Birth field
-            _buildAnimatedSlide(
-              delay: 600,
-              child: GestureDetector(
-                onTap: () => _selectDateOfBirth(context),
-                child: AbsorbPointer(
-                  child: AdaptiveTextField(
-                    controller: _viewModel.dateOfBirthController,
-                    label: 'Date of Birth',
-                    placeholder: 'Select your date of birth',
-                    prefixIcon: Icons.calendar_today_outlined,
-                  ),
+          // Date of Birth field
+          _buildAnimatedSlide(
+            delay: 600,
+            child: GestureDetector(
+              onTap: () => _selectDateOfBirth(context),
+              child: AbsorbPointer(
+                child: AdaptiveTextField(
+                  controller: _viewModel.dateOfBirthController,
+                  label: 'Date of Birth',
+                  placeholder: 'Select your date of birth',
+                  prefixIcon: Icons.calendar_today_outlined,
                 ),
               ),
             ),
+          ),
 
           SizedBox(height: responsive.mediumSpacing),
 
@@ -659,74 +639,58 @@ class _SignUpScreenState extends State<SignUpScreen>
 
     DateTime? selectedDate;
 
-    if (!kIsWeb) {
-      if (Platform.isIOS || Platform.isMacOS) {
-        // Use Cupertino date picker
-        await showCupertinoModalPopup<void>(
-          context: context,
-          builder: (context) => Container(
-            height: 250,
-            color: CupertinoColors.systemBackground.resolveFrom(context),
-            child: Column(
-              children: [
-                Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.systemGrey6.resolveFrom(context),
-                    border: const Border(
-                      bottom: BorderSide(color: CupertinoColors.separator),
+    if (Platform.isIOS) {
+      // Use Cupertino date picker
+      await showCupertinoModalPopup<void>(
+        context: context,
+        builder: (context) => Container(
+          height: 250,
+          color: CupertinoColors.systemBackground.resolveFrom(context),
+          child: Column(
+            children: [
+              Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemGrey6.resolveFrom(context),
+                  border: const Border(
+                    bottom: BorderSide(color: CupertinoColors.separator),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CupertinoButton(
+                      child: const Text('Cancel'),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CupertinoButton(
-                        child: const Text('Cancel'),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      CupertinoButton(
-                        child: const Text('Done'),
-                        onPressed: () {
-                          if (selectedDate != null) {
-                            _viewModel.setDateOfBirth(selectedDate!);
-                          }
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  ),
+                    CupertinoButton(
+                      child: const Text('Done'),
+                      onPressed: () {
+                        if (selectedDate != null) {
+                          _viewModel.setDateOfBirth(selectedDate!);
+                        }
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: CupertinoDatePicker(
-                    mode: CupertinoDatePickerMode.date,
-                    initialDateTime: eighteenYearsAgo,
-                    minimumDate: hundredYearsAgo,
-                    maximumDate: eighteenYearsAgo,
-                    onDateTimeChanged: (DateTime date) {
-                      selectedDate = date;
-                    },
-                  ),
+              ),
+              Expanded(
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.date,
+                  initialDateTime: eighteenYearsAgo,
+                  minimumDate: hundredYearsAgo,
+                  maximumDate: eighteenYearsAgo,
+                  onDateTimeChanged: (DateTime date) {
+                    selectedDate = date;
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      } else {
-        // Use Material date picker
-        selectedDate = await showDatePicker(
-          context: context,
-          initialDate: eighteenYearsAgo,
-          firstDate: hundredYearsAgo,
-          lastDate: eighteenYearsAgo,
-          helpText: 'Select your date of birth',
-          fieldLabelText: 'Date of Birth',
-        );
+        ),
+      );
 
-        if (selectedDate != null) {
-          _viewModel.setDateOfBirth(selectedDate);
-        }
-      }
-    } else {
       // Use Material date picker
       selectedDate = await showDatePicker(
         context: context,
@@ -738,7 +702,7 @@ class _SignUpScreenState extends State<SignUpScreen>
       );
 
       if (selectedDate != null) {
-        _viewModel.setDateOfBirth(selectedDate);
+        _viewModel.setDateOfBirth(selectedDate!);
       }
     }
   }
@@ -832,13 +796,6 @@ class _SignUpScreenState extends State<SignUpScreen>
         ),
       ],
     );
-  }
-
-  void _validateFluintCalendarDatePicker(List<DateTime> dates) {
-    if (dates.isNotEmpty) {
-      final date = dates[0];
-      _viewModel.setDateOfBirth(date);
-    }
   }
 
   void _showImagePickerOptions(BuildContext context) {

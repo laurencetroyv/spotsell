@@ -1,10 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/data/entities/entities.dart';
 import 'package:spotsell/src/ui/feature/buyer/widgets/store_form_dialog.dart';
@@ -33,22 +30,12 @@ class StoreDialogUtils {
     BuildContext context,
     Widget dialog,
   ) async {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return await showCupertinoDialog<Store>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => dialog,
-        );
-      }
-
-      if (Platform.isWindows) {
-        return await fl.showDialog<Store>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => dialog,
-        );
-      }
+    if (Platform.isIOS) {
+      return await showCupertinoDialog<Store>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => dialog,
+      );
     }
 
     // Material
@@ -64,53 +51,28 @@ class StoreDialogUtils {
     BuildContext context,
     Store store,
   ) async {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        final result = await showCupertinoDialog<bool>(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('Delete Store'),
-            content: Text(
-              'Are you sure you want to delete "${store.name}"? This action cannot be undone.',
-            ),
-            actions: [
-              CupertinoDialogAction(
-                child: const Text('Cancel'),
-                onPressed: () => Navigator.of(context).pop(false),
-              ),
-              CupertinoDialogAction(
-                isDestructiveAction: true,
-                child: const Text('Delete'),
-                onPressed: () => Navigator.of(context).pop(true),
-              ),
-            ],
+    if (Platform.isIOS) {
+      final result = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('Delete Store'),
+          content: Text(
+            'Are you sure you want to delete "${store.name}"? This action cannot be undone.',
           ),
-        );
-        return result ?? false;
-      }
-
-      if (Platform.isWindows) {
-        final result = await fl.showDialog<bool>(
-          context: context,
-          builder: (context) => fl.ContentDialog(
-            title: const Text('Delete Store'),
-            content: Text(
-              'Are you sure you want to delete "${store.name}"? This action cannot be undone.',
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(false),
             ),
-            actions: [
-              fl.Button(
-                child: const Text('Cancel'),
-                onPressed: () => Navigator.of(context).pop(false),
-              ),
-              fl.FilledButton(
-                child: const Text('Delete'),
-                onPressed: () => Navigator.of(context).pop(true),
-              ),
-            ],
-          ),
-        );
-        return result ?? false;
-      }
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              child: const Text('Delete'),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        ),
+      );
+      return result ?? false;
     }
 
     // Material

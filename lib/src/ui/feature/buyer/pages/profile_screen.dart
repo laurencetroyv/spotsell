@@ -1,10 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
@@ -102,58 +99,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Don't show app bar if using navigation rail (desktop)
     if (responsive.shouldShowNavigationRail) return null;
 
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return CupertinoNavigationBar(
-          automaticallyImplyLeading: false,
-          middle: Text(
-            'Profile',
-            style: CupertinoTheme.of(context).textTheme.navTitleTextStyle,
-          ),
-          trailing: CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: _handleSignOut,
-            child: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.signOut)),
-          ),
-        );
-      }
-
-      if (Platform.isWindows) {
-        return PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Container(
-            height: 60,
-            decoration: BoxDecoration(
-              color: fl.FluentTheme.of(context).scaffoldBackgroundColor,
-              border: Border(
-                bottom: BorderSide(
-                  color: fl.FluentTheme.of(
-                    context,
-                  ).resources.cardStrokeColorDefault,
-                ),
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Text(
-                    'Profile',
-                    style: fl.FluentTheme.of(context).typography.title,
-                  ),
-                  const Spacer(),
-                  fl.IconButton(
-                    icon: Icon(
-                      ThemeUtils.getAdaptiveIcon(AdaptiveIcon.signOut),
-                    ),
-                    onPressed: _handleSignOut,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
+    if (Platform.isIOS) {
+      return CupertinoNavigationBar(
+        automaticallyImplyLeading: false,
+        middle: Text(
+          'Profile',
+          style: CupertinoTheme.of(context).textTheme.navTitleTextStyle,
+        ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: _handleSignOut,
+          child: Icon(ThemeUtils.getAdaptiveIcon(AdaptiveIcon.signOut)),
+        ),
+      );
     }
 
     // Material
@@ -354,47 +312,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<bool?> _showSignOutConfirmation() async {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return await showCupertinoDialog<bool>(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('Sign Out'),
-            content: const Text('Are you sure you want to sign out?'),
-            actions: [
-              CupertinoDialogAction(
-                child: const Text('Cancel'),
-                onPressed: () => Navigator.of(context).pop(false),
-              ),
-              CupertinoDialogAction(
-                isDestructiveAction: true,
-                child: const Text('Sign Out'),
-                onPressed: () => Navigator.of(context).pop(true),
-              ),
-            ],
-          ),
-        );
-      }
-
-      if (Platform.isWindows) {
-        return await fl.showDialog<bool>(
-          context: context,
-          builder: (context) => fl.ContentDialog(
-            title: const Text('Sign Out'),
-            content: const Text('Are you sure you want to sign out?'),
-            actions: [
-              fl.Button(
-                child: const Text('Cancel'),
-                onPressed: () => Navigator.of(context).pop(false),
-              ),
-              fl.FilledButton(
-                child: const Text('Sign Out'),
-                onPressed: () => Navigator.of(context).pop(true),
-              ),
-            ],
-          ),
-        );
-      }
+    if (Platform.isIOS) {
+      return await showCupertinoDialog<bool>(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('Sign Out'),
+          content: const Text('Are you sure you want to sign out?'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              child: const Text('Sign Out'),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        ),
+      );
     }
 
     // Material

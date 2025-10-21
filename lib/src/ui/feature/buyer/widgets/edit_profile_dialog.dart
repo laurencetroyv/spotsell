@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:dio/dio.dart';
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
@@ -94,13 +93,8 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return _buildCupertinoDialog(context, responsive);
-      }
-      if (Platform.isWindows) {
-        return _buildFluentDialog(context, responsive);
-      }
+    if (Platform.isIOS) {
+      return _buildCupertinoDialog(context, responsive);
     }
 
     return _buildMaterialDialog(context, responsive);
@@ -142,25 +136,6 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         ),
       ),
       actions: _buildCupertinoActions(context, responsive),
-    );
-  }
-
-  Widget _buildFluentDialog(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    return fl.ContentDialog(
-      title: const Text('Edit Profile'),
-      content: Container(
-        width: responsive.isDesktop ? 450 : double.maxFinite,
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
-        ),
-        child: SingleChildScrollView(
-          child: _buildFormContent(context, responsive),
-        ),
-      ),
-      actions: _buildFluentActions(context, responsive),
     );
   }
 
@@ -234,21 +209,18 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
           SizedBox(height: responsive.mediumSpacing),
 
           // Date of Birth field
-          if (!kIsWeb && Platform.isWindows)
-            _buildFluentDatePicker(context, responsive)
-          else
-            GestureDetector(
-              onTap: _isLoading ? null : () => _selectDateOfBirth(context),
-              child: AbsorbPointer(
-                child: AdaptiveTextField(
-                  controller: _dateOfBirthController,
-                  label: 'Date of Birth',
-                  placeholder: 'Select your date of birth',
-                  prefixIcon: Icons.calendar_today_outlined,
-                  enabled: !_isLoading,
-                ),
+          GestureDetector(
+            onTap: _isLoading ? null : () => _selectDateOfBirth(context),
+            child: AbsorbPointer(
+              child: AdaptiveTextField(
+                controller: _dateOfBirthController,
+                label: 'Date of Birth',
+                placeholder: 'Select your date of birth',
+                prefixIcon: Icons.calendar_today_outlined,
+                enabled: !_isLoading,
               ),
             ),
+          ),
           SizedBox(height: responsive.mediumSpacing),
 
           // Gender selection
@@ -424,27 +396,6 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
     );
   }
 
-  Widget _buildFluentDatePicker(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    return fl.InfoLabel(
-      label: 'Date of Birth',
-      child: SizedBox(
-        width: double.infinity,
-        child: fl.CalendarDatePicker(
-          dateFormatter: DateFormat.yMMMMEEEEd(),
-          maxDate: DateTime.now(),
-          onSelectionChanged: (value) {
-            if (value.selectedDates.isNotEmpty) {
-              _setDateOfBirth(value.selectedDates.first);
-            }
-          },
-        ),
-      ),
-    );
-  }
-
   Widget _buildGenderSelection(
     BuildContext context,
     ResponsiveBreakpoints responsive,
@@ -549,13 +500,8 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   }
 
   Widget _buildPlatformLoadingIndicator() {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return const CupertinoActivityIndicator();
-      }
-      if (Platform.isWindows) {
-        return const fl.ProgressRing();
-      }
+    if (Platform.isIOS) {
+      return const CupertinoActivityIndicator();
     }
     return const SizedBox(
       width: 20,
@@ -609,31 +555,6 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       ),
       CupertinoDialogAction(
         isDefaultAction: true,
-        onPressed: _isLoading ? null : _handleUpdateProfile,
-        child: const Text('Update'),
-      ),
-    ];
-  }
-
-  List<Widget> _buildFluentActions(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    if (_errorMessage != null) {
-      return [
-        fl.Button(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
-        ),
-      ];
-    }
-
-    return [
-      fl.Button(
-        onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-        child: const Text('Cancel'),
-      ),
-      fl.FilledButton(
         onPressed: _isLoading ? null : _handleUpdateProfile,
         child: const Text('Update'),
       ),
@@ -1108,27 +1029,9 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   void _showSuccessMessage(BuildContext context) {
     const message = 'Profile updated successfully!';
 
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        // Don't show additional dialog on iOS as it's intrusive
-        return;
-      }
-
-      if (Platform.isWindows) {
-        fl.displayInfoBar(
-          context,
-          builder: (context, close) => fl.InfoBar(
-            title: const Text('Success'),
-            content: const Text(message),
-            severity: fl.InfoBarSeverity.success,
-            action: fl.IconButton(
-              icon: const Icon(fl.FluentIcons.clear),
-              onPressed: close,
-            ),
-          ),
-        );
-        return;
-      }
+    if (Platform.isIOS) {
+      // Don't show additional dialog on iOS as it's intrusive
+      return;
     }
 
     // Material

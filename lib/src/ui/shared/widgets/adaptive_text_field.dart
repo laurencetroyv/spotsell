@@ -1,11 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 class AdaptiveTextField extends StatefulWidget {
   const AdaptiveTextField({
@@ -72,23 +69,10 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
   Widget build(BuildContext context) {
     Widget textfield;
 
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        textfield = _buildCupertinoTextField(context);
-      } else if (Platform.isWindows) {
-        textfield = _buildFluentTextField(context);
-      } else {
-        textfield = _buildMaterialTextField(context);
-      }
+    if (Platform.isMacOS || Platform.isIOS) {
+      textfield = _buildCupertinoTextField(context);
     } else {
       textfield = _buildMaterialTextField(context);
-    }
-
-    // For Fluent UI, wrap with InfoLabel if label is provided
-    if (!kIsWeb) {
-      if (widget.label != null && Platform.isWindows) {
-        textfield = fl.InfoLabel(label: widget.label!, child: textfield);
-      }
     }
 
     return SizedBox(width: widget.width, child: textfield);
@@ -149,52 +133,6 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
             )
           : null,
       suffix: suffixWidget,
-    );
-  }
-
-  Widget _buildFluentTextField(BuildContext context) {
-    final leadingIcon = widget.prefixIcon != null
-        ? Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Icon(widget.prefixIcon!, size: 16),
-          )
-        : null;
-
-    if (widget.obscureText) {
-      return fl.PasswordBox(
-        revealMode: fl.PasswordRevealMode.peekAlways,
-        controller: widget.controller,
-        enabled: widget.enabled,
-        placeholder: widget.placeholder,
-        onChanged: widget.onChanged,
-        leadingIcon: leadingIcon,
-        onSubmitted: widget.onSubmitted,
-        focusNode: widget.focusNode,
-      );
-    }
-
-    return fl.TextBox(
-      controller: widget.controller,
-      enabled: widget.enabled,
-      placeholder: widget.placeholder,
-      keyboardType: widget.keyboardType,
-      autocorrect: widget.autocorrect,
-      textInputAction: widget.textInputAction,
-      obscureText: _isObscured,
-      minLines: widget.minLines,
-      maxLines: widget.maxLines,
-      maxLength: widget.maxLength,
-      onChanged: widget.onChanged,
-      onSubmitted: widget.onSubmitted,
-      focusNode: widget.focusNode,
-      inputFormatters: widget.inputFormatters,
-      prefix: leadingIcon,
-      suffix: widget.suffixIcon != null
-          ? Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Icon(widget.suffixIcon!, size: 16),
-            )
-          : null,
     );
   }
 

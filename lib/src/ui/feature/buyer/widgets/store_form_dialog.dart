@@ -1,11 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 
 import 'package:spotsell/src/core/dependency_injection/service_locator.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
@@ -78,13 +75,8 @@ class _StoreFormDialogState extends State<StoreFormDialog> {
   Widget build(BuildContext context) {
     final responsive = ResponsiveBreakpoints.of(context);
 
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return _buildCupertinoDialog(context, responsive);
-      }
-      if (Platform.isWindows) {
-        return _buildFluentDialog(context, responsive);
-      }
+    if (Platform.isIOS) {
+      return _buildCupertinoDialog(context, responsive);
     }
 
     return _buildMaterialDialog(context, responsive);
@@ -124,23 +116,6 @@ class _StoreFormDialogState extends State<StoreFormDialog> {
         ),
       ),
       actions: _buildCupertinoActions(context, responsive),
-    );
-  }
-
-  Widget _buildFluentDialog(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    return fl.ContentDialog(
-      title: Text(widget.isEditing ? 'Edit Store' : 'Create New Store'),
-      content: Container(
-        width: responsive.isDesktop ? 400 : double.maxFinite,
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.7,
-        ),
-        child: _buildFormContent(context, responsive),
-      ),
-      actions: _buildFluentActions(context, responsive),
     );
   }
 
@@ -267,13 +242,8 @@ class _StoreFormDialogState extends State<StoreFormDialog> {
   }
 
   Widget _buildPlatformLoadingIndicator() {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        return const CupertinoActivityIndicator();
-      }
-      if (Platform.isWindows) {
-        return const fl.ProgressRing();
-      }
+    if (Platform.isIOS) {
+      return const CupertinoActivityIndicator();
     }
     return const SizedBox(
       width: 20,
@@ -327,31 +297,6 @@ class _StoreFormDialogState extends State<StoreFormDialog> {
       ),
       CupertinoDialogAction(
         isDefaultAction: true,
-        onPressed: _isLoading ? null : _handleSubmit,
-        child: Text(widget.isEditing ? 'Update' : 'Create'),
-      ),
-    ];
-  }
-
-  List<Widget> _buildFluentActions(
-    BuildContext context,
-    ResponsiveBreakpoints responsive,
-  ) {
-    if (_errorMessage != null) {
-      return [
-        fl.Button(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
-        ),
-      ];
-    }
-
-    return [
-      fl.Button(
-        onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-        child: const Text('Cancel'),
-      ),
-      fl.FilledButton(
         onPressed: _isLoading ? null : _handleSubmit,
         child: Text(widget.isEditing ? 'Update' : 'Create'),
       ),
@@ -475,39 +420,21 @@ class _StoreFormDialogState extends State<StoreFormDialog> {
         ? 'Store "${store.name}" updated successfully!'
         : 'Store "${store.name}" created successfully!';
 
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('Success'),
-            content: Text(message),
-            actions: [
-              CupertinoDialogAction(
-                child: const Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        );
-        return;
-      }
-
-      if (Platform.isWindows) {
-        fl.displayInfoBar(
-          context,
-          builder: (context, close) => fl.InfoBar(
-            title: const Text('Success'),
-            content: Text(message),
-            severity: fl.InfoBarSeverity.success,
-            action: fl.IconButton(
-              icon: const Icon(fl.FluentIcons.clear),
-              onPressed: close,
+    if (Platform.isIOS) {
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: const Text('Success'),
+          content: Text(message),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-          ),
-        );
-        return;
-      }
+          ],
+        ),
+      );
+      return;
     }
 
     // Material

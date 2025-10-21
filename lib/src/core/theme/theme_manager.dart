@@ -1,10 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import 'package:fluent_ui/fluent_ui.dart' as fl;
-import 'package:yaru/yaru.dart';
 
 import 'package:spotsell/src/core/theme/app_color_schemes.dart';
 import 'package:spotsell/src/core/theme/responsive_breakpoints.dart';
@@ -143,95 +138,6 @@ class ThemeManager {
           color: AppColorSchemes.cupertinoDark.label,
         ),
       ),
-    );
-  }
-
-  // Fluent Theme
-  static fl.FluentThemeData fluentLightTheme(BuildContext context) {
-    return fl.FluentThemeData.light().copyWith(
-      accentColor: fl.AccentColor.swatch({
-        'darkest': const Color(0xFF8B2914),
-        'darker': const Color(0xFFA8311A),
-        'dark': const Color(0xFFC63820),
-        'normal': primaryColor,
-        'light': const Color(0xFFF37A62),
-        'lighter': const Color(0xFFF69582),
-        'lightest': const Color(0xFFF8B0A2),
-      }),
-      scaffoldBackgroundColor:
-          AppColorSchemes.fluentLight.scaffoldBackgroundColor,
-      cardColor: AppColorSchemes.fluentLight.cardColor,
-      typography: fl.Typography.fromBrightness(brightness: Brightness.light)
-          .apply(
-            fontFamily: Platform.isWindows ? 'Segoe UI' : null,
-
-            // bodyLarge: TextStyle(fontSize: responsive.isDesktop ? 16 : 14),
-            // bodyMedium: TextStyle(fontSize: responsive.isDesktop ? 14 : 12),
-            // headlineLarge: TextStyle(
-            //   fontSize: responsive.isDesktop ? 32 : 28,
-            //   fontWeight: FontWeight.w600,
-            // ),
-          ),
-      navigationPaneTheme: fl.NavigationPaneThemeData(
-        backgroundColor:
-            AppColorSchemes.fluentLight.navigationPaneBackgroundColor,
-      ),
-    );
-  }
-
-  static fl.FluentThemeData fluentDarkTheme(BuildContext context) {
-    return fl.FluentThemeData.dark().copyWith(
-      accentColor: fl.AccentColor.swatch({
-        'darkest': const Color(0xFF8B2914),
-        'darker': const Color(0xFFA8311A),
-        'dark': const Color(0xFFC63820),
-        'normal': primaryColor,
-        'light': const Color(0xFFF37A62),
-        'lighter': const Color(0xFFF69582),
-        'lightest': const Color(0xFFF8B0A2),
-      }),
-      scaffoldBackgroundColor:
-          AppColorSchemes.fluentDark.scaffoldBackgroundColor,
-      cardColor: AppColorSchemes.fluentDark.cardColor,
-      typography: fl.Typography.fromBrightness(brightness: Brightness.dark)
-          .apply(
-            fontFamily: Platform.isWindows ? 'Segoe UI' : null,
-            // bodyLarge: TextStyle(fontSize: responsive.isDesktop ? 16 : 14),
-            // bodyMedium: TextStyle(fontSize: responsive.isDesktop ? 14 : 12),
-            // headlineLarge: TextStyle(
-            //   fontSize: responsive.isDesktop ? 32 : 28,
-            //   fontWeight: FontWeight.w600,
-            // ),
-          ),
-      navigationPaneTheme: fl.NavigationPaneThemeData(
-        backgroundColor:
-            AppColorSchemes.fluentDark.navigationPaneBackgroundColor,
-      ),
-    );
-  }
-
-  // Yaru Theme (Linux/Fuchsia)
-  static ThemeData yaruLightTheme(BuildContext context) {
-    final responsive = ResponsiveBreakpoints.of(context);
-
-    return yaruLight.copyWith(
-      colorScheme: AppColorSchemes.materialLight,
-      appBarTheme: yaruLight.appBarTheme.copyWith(
-        toolbarHeight: responsive.isDesktop ? 64 : 56,
-      ),
-      textTheme: _buildResponsiveTextTheme(context, Brightness.light),
-    );
-  }
-
-  static ThemeData yaruDarkTheme(BuildContext context) {
-    final responsive = ResponsiveBreakpoints.of(context);
-
-    return yaruDark.copyWith(
-      colorScheme: AppColorSchemes.materialDark,
-      appBarTheme: yaruDark.appBarTheme.copyWith(
-        toolbarHeight: responsive.isDesktop ? 64 : 56,
-      ),
-      textTheme: _buildResponsiveTextTheme(context, Brightness.dark),
     );
   }
 

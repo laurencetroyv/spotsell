@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:fluent_ui/fluent_ui.dart' as fl;
 import 'package:intl/intl.dart';
 
 import 'package:spotsell/src/core/navigation/navigation_extensions.dart';
@@ -486,28 +485,9 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
   }
 
   void _showProfileUpdateSuccess() {
-    if (!kIsWeb) {
-      if (Platform.isMacOS || Platform.isIOS) {
-        HapticFeedback.lightImpact();
-        return;
-      }
-
-      if (Platform.isWindows) {
-        fl.displayInfoBar(
-          context,
-          builder: (context, close) => fl.InfoBar(
-            title: const Text('Success'),
-            content: const Text('Your profile has been updated successfully'),
-            severity: fl.InfoBarSeverity.success,
-            action: fl.IconButton(
-              icon: const Icon(fl.FluentIcons.clear),
-              onPressed: close,
-            ),
-          ),
-          duration: const Duration(seconds: 3),
-        );
-        return;
-      }
+    if (Platform.isIOS) {
+      HapticFeedback.lightImpact();
+      return;
     }
 
     ScaffoldMessenger.of(context).showSnackBar(

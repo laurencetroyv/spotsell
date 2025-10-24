@@ -207,7 +207,7 @@ jobs:
           cd ../..
 
       - name: ⬆️ Upload Android artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: android-artifacts
           path: artifacts/android/
@@ -262,7 +262,7 @@ jobs:
           cd build/ios/iphoneos && tar -czf ../../../artifacts/ios/spotsell-ios.tar.gz Runner.app
 
       - name: ⬆️ Upload iOS artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ios-artifacts
           path: artifacts/ios/
